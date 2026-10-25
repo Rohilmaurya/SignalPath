@@ -1,29 +1,66 @@
 # Antigravity implementation handoff
 
-## Roles
+## Roles and decision rights
 
-- **You (Antigravity) are the executor and code writer.** Implement the prototype in this shared folder, following `plan.md` and the requirements in `PRD.md`, `TRD.md`, `app-flow.md`, and `backend-schema.md`.
-- **Codex is the planner and reviewer.** Codex maintains the requirements and review notes, then reviews your changes through `execution log.md` and the shared project files. Do not treat Codex as the implementation agent.
-- The human owns final product decisions. Keep the prototype reviewable and explain material tradeoffs in the execution log.
+- **Antigravity is the executor and code writer.** Implement the experience and application changes in this shared project. Read the product/technical requirements and reviewer notes before each pass.
+- **Codex is the planner and reviewer.** Codex maintains plan and requirements documents, owns review.md, and reviews Antigravity's implementation through the shared workspace and execution log.md. Do not ask Codex to write application code.
+- **The human owns final product decisions.** Keep decisions, tradeoffs, deferred work, and evidence reviewable.
 
-## Before implementation
+## Current product direction — supersedes earlier dashboard-first handoff
 
-1. Read `ANTIGRAVITY_ENGINEERING_MEMORY.md` and all five planning documents listed above, then inspect this folder and its current Git state before creating or changing files.
-2. Start with Master Engineering Workflow. Consult `%USERPROFILE%\.gemini\config\antigravity-system\registry\START-HERE.md`, `registry\components.json`, the relevant shared extension files, relevant component extension files, and any project overlay that exists. The persistent project summary is in `ANTIGRAVITY_ENGINEERING_MEMORY.md`.
-3. Use only relevant skills and agents: Software Architecture Planning; Frontend Design; Engineering & Coding; Frontend Engineer; proportionate Security Engineer review; and UI/UX Judge. Use UI Motion Designer only if meaningful micro-interactions need a deliberate spec. This dashboard does not call for immersive web, advanced scroll motion, 3D, or immersive motion engineering unless the approved design materially changes.
-4. After the first complete visual pass, check whether the official `hallmark` skill is actually installed and runnable. The registry lists it, but the checked config did not contain its `SKILL.md`; `hallmark-inspired` is a separate available custom skill. Record which one actually ran, or state that the official gate was unavailable.
-5. Record skill/agent names actually used (or unavailable required skills) in `execution log.md`; do not claim a skill, agent, audit, or check ran if it did not.
-6. Deliver a working, focused three-hour hackathon prototype. Prioritize the end-to-end sample incident replay and dashboard; keep optional work out of the critical path.
-7. Keep Gemini credentials server-side in an environment variable. Never commit secrets or expose them to browser code.
+Build a scroll-led, editorial, high-craft introduction that leads into a genuinely upload-first operations analysis workspace. The application does not start from sample logs, a preselected server module, or an auto-analysis. It has no default dataset. Analysis begins only after the user provides a telemetry CSV plus dependency JSON and deliberately selects Analyze.
 
-## Execution and communication
+After upload, show a concise, evidence-grounded prediction of the component most at risk, a dynamic crafted 3D topology based on the actual uploaded dependencies, the primary possible cascade, a small comparison of simulated recovery estimates with do nothing, and a focused way to ask questions about the current run. Reveal secondary evidence and assumptions on request. No real infrastructure changes are executed.
 
-- You may create and edit application code and supporting project files needed to implement the plan.
-- Append dated entries to `execution log.md`: decisions, files/features completed, commands or checks run and their outcomes, remaining issues, and next action. This is the shared handoff from executor to planner.
-- Read `review.md` before each implementation pass. Codex owns that file; do not rewrite or remove planner review notes. Append executor responses only under a clearly labeled **Executor responses** section if present.
-- When a review identifies a defect, fix it and record the resolution in `execution log.md`. If a requirement is ambiguous or infeasible, state the concrete issue and a proposed fallback in the log; continue independent work.
-- Avoid expanding scope beyond the three-hour prototype. Do not deploy, publish, or make external changes unless the human specifically asks.
+The story may show explicitly labeled illustrations, but they are not telemetry or a live result. The uploaded-data topology must not be a static scene or a hardcoded sample graph. The detailed requirements in PRD.md, TRD.md, app-flow.md, and backend-schema.md are authoritative.
+
+## Required skill and agent workflow
+
+1. Start with **Master Engineering Workflow**. Read the current project Git state and actual implementation. Consult the configured registry and applicable extension files under %USERPROFILE%/.gemini/config/antigravity-system/, plus any project overlay under .agents/engineering-system/extensions/. Read ANTIGRAVITY_ENGINEERING_MEMORY.md.
+2. Use the full Antigravity skill set relevant to this explicit scroll-story, motion, 3D, and application redesign:
+   - Master Engineering Workflow
+   - Software Architecture Planning
+   - Frontend Design
+   - Immersive Web Experience Designer
+   - UI Motion Designer
+   - Advanced Web Motion Designer
+   - Immersive 3D Motion Designer
+   - hallmark-inspired (the installed custom skill)
+3. Coordinate applicable specialist agents:
+   - Engineering Orchestrator to establish dependencies, work ownership, and integration order.
+   - Engineering & Coding for implementation review, maintenance, and actual checks.
+   - Frontend Engineer for the responsive product UI.
+   - Immersive Experience Engineer for the authored narrative and data-driven 3D experience. Coordinate with Frontend Engineer on clear ownership and integration.
+   - Security Engineer for upload boundaries, secrets, log handling, model prompt injection, Q&A, and data lifecycle.
+   - UI/UX Judge to independently inspect the complete rendered site, not just source code or screenshots of design intent.
+4. Before implementation, record the design/architecture decision: chapter sequence, visual language, motion triggers and reduced-motion alternative, Three.js/Blender/Flow responsibilities, upload/result state machine, Q&A contract, file ownership, and acceptance checks.
+5. The configured official upstream hallmark skill was absent in the last recorded environment inspection. Recheck Antigravity's current registry. Run the official hallmark gate only if its actual skill file is installed and runnable; otherwise run hallmark-inspired and record the exact limitation. Never claim one ran when it did not.
+6. Record every skill/agent actually used and every check actually run in execution log.md. The list above is a required workflow selection for this redesign; report any unavailable capability rather than simulating it.
+
+## Implementation guidance
+
+- Inspect the existing Next.js + TypeScript implementation and preserve functioning analysis logic where sound. Remove initial calls to sample data, sample server state and hardcoded topology data from the shipped user path. Do not rewrite the stack without an evidence-based reason recorded in the log.
+- Use the existing Three.js runtime for the scroll-story scene and the uploaded-data topology. Build scroll-linked transitions and interactions in the app. No paid scene editor is required. Blender is optional if a custom model asset materially improves the scene; retain the .blend source and export an optimized GLB.
+- Google Flow may create an offline cinematic asset for the story only. It must not be needed for core behavior, load analysis data, carry essential text, or masquerade as live topology. If a Flow artifact is unavailable, complete a graceful native scene/poster fallback.
+- Update README.md and remove stale replay-sample/auto-loaded dashboard instructions.
+- Keep the Gemini credential server-only. Validate upload size and contents, select only bounded evidence for model requests, and treat telemetry and user questions as untrusted input.
+- Q&A can explain the current upload and provide evidence-grounded diagnostic or recovery guidance. It cannot claim to change systems or execute a fix. Recovery scenarios stay labeled simulations.
+- Keep the product visually calm: one idea per story chapter; one dominant analysis scan path; sparse persistent controls; readable topology labels; purposeful color; no decorative badge/card clutter.
+- Provide accessible non-WebGL and reduced-motion alternatives. Avoid scroll traps, constant movement, hidden keyboard controls, and important content encoded only in images/video.
+
+## Execution and shared log
+
+- You may edit application code and supporting project files needed for the implementation.
+- Antigravity owns execution log.md. Append dated entries with decisions, changed files/features, exact commands/checks and observed results, known limitations, and next step.
+- Codex owns review.md. Read it before each implementation pass; do not edit or delete planner review entries. Append any executor response only under the existing clearly labeled Executor responses section.
+- Do not deploy, publish, or change external systems unless the human explicitly asks.
+- Do not stop at a partial visual mock. Deliver a working upload-to-analysis path and the complete story-to-tool flow, or clearly record why a requirement is blocked and the closest complete fallback.
 
 ## Completion handoff
 
-In the final execution-log entry, summarize the implemented experience, setup/run instructions, environment variables required, checks actually performed, known limitations, and any work left. Do not claim a check passed unless you ran it and observed success.
+The final execution-log entry must summarize the actual product flow, controls, analysis limitations, Three.js and Blender asset usage, plus Flow usage or why Flow was not used, setup and environment variables, commands/checks actually run with outcomes, known issues, and deferred work. Do not state any unchecked item as passed.
+
+
+
+
+

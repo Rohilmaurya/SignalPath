@@ -69,6 +69,7 @@ export type PredictionResult = {
   available: boolean;
   serviceId: string | null;
   riskScore: number;
+  riskBand?: RiskBand;
   confidence: "low" | "medium" | "high";
   horizonMinutes: number;
   causeSummary: string;
@@ -146,3 +147,60 @@ export type AnalysisError = {
     issues: AnalysisErrorIssue[];
   };
 };
+
+export type AskContext = {
+  status: "complete" | "insufficient_data";
+  dataQuality?: {
+    sufficientForForecast: boolean;
+    windowStart?: string | null;
+    windowEnd?: string | null;
+    recordCount?: number;
+    serviceCount?: number;
+  };
+  prediction: {
+    serviceId: string | null;
+    riskScore: number;
+    riskBand: string;
+    confidence: string;
+    causeSummary?: string;
+    evidenceIds: string[];
+  };
+  dependencies: Array<{ from: string; to: string }>;
+  cascadePaths: Array<{ serviceIds: string[]; reason?: string; evidenceIds?: string[] }>;
+  scenarios: Array<{
+    id: string;
+    label?: string;
+    remainingSystemRisk: number;
+    recoveryMinutes: number | null;
+    simulated: boolean;
+    rank?: number;
+    tradeoffs?: string;
+  }>;
+  evidence: Array<{
+    id: string;
+    kind: string;
+    serviceId: string;
+    value: string;
+    timestamp?: string;
+    label?: string;
+  }>;
+};
+
+export type AskRequest = {
+  schemaVersion: "1";
+  analysisId: string;
+  question: string;
+  context: AskContext;
+};
+
+export type AskResponse = {
+  schemaVersion: "1";
+  analysisId: string;
+  status: "answered" | "insufficient_context" | "unavailable";
+  answer: string;
+  evidenceIds: string[];
+  uncertainty?: string;
+  suggestions?: string[];
+  source: "gemini" | "deterministic";
+};
+

@@ -148,7 +148,72 @@ async function runTests() {
   }
   console.log("✓ Correctly withheld failure prediction when telemetry signals are nominal!");
 
-  console.log("\n=== ALL 6 API INVARIANT TESTS PASSED SUCCESSFULLY! ===");
+  // Test 7: Grounded Follow-up Q&A Endpoint (/api/ask)
+  console.log("\n[Test 7] Grounded Follow-Up Q&A (/api/ask)...");
+  const askUrl = "http://localhost:3000/api/ask";
+  const askPayload = {
+    schemaVersion: "1",
+    analysisId: data1.analysisId,
+    question: "What specific evidence points to degradation in this service?",
+    context: {
+      status: data1.status,
+      dataQuality: data1.dataQuality,
+      prediction: {
+        serviceId: data1.prediction.serviceId,
+        riskScore: data1.prediction.riskScore,
+        riskBand: data1.prediction.riskBand,
+        confidence: data1.prediction.confidence,
+        causeSummary: data1.prediction.causeSummary,
+        evidenceIds: data1.prediction.evidenceIds,
+      },
+      dependencies: data1.dependencies,
+      cascadePaths: data1.cascade.paths,
+      scenarios: data1.scenarios,
+      evidence: data1.evidence.slice(0, 15),
+    },
+  };
+
+  const res7 = await fetch(askUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(askPayload),
+  });
+
+  console.log("HTTP Status:", res7.status);
+  const data7 = await res7.json();
+  console.log("Ask status:", data7.status);
+  console.log("Ask source:", data7.source);
+  console.log("Answer excerpt:", data7.answer?.slice(0, 80) + "...");
+  console.log("Cited evidence count:", data7.evidenceIds?.length);
+
+  if (res7.status !== 200 || data7.status !== "answered") {
+    throw new Error("Test 7 failed: Expected status 200 and answered status");
+  }
+  if (!data7.answer || data7.answer.length === 0) {
+    throw new Error("Test 7 failed: Empty answer returned");
+  }
+
+  // Verify all cited evidence IDs exist in context
+  const contextEvidenceIds = new Set(askPayload.context.evidence.map(e => e.id));
+  for (const eid of data7.evidenceIds) {
+    if (!contextEvidenceIds.has(eid)) {
+      throw new Error(`Test 7 failed: Q&A cited evidence ID ${eid} not in context evidence!`);
+    }
+  }
+  console.log("✓ All Q&A citations strictly validated against context evidence ledger!");
+
+  // Sub-test: Reject empty question with 400
+  const badAskRes = await fetch(askUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: "" }),
+  });
+  if (badAskRes.status !== 400) {
+    throw new Error("Test 7 failed: Expected 400 for empty question");
+  }
+  console.log("✓ Correctly rejected empty question with 400");
+
+  console.log("\n=== ALL 7 API INVARIANT TESTS PASSED SUCCESSFULLY! ===");
 }
 
 runTests().catch(err => {

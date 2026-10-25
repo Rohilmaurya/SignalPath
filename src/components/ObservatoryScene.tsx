@@ -3,13 +3,14 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { ServiceAnalysis, DependencyEdge } from "@/lib/types";
+import { computeGraphLayout } from "@/lib/graph-layout";
 import { 
   RotateCcw, 
   HelpCircle, 
   Crosshair, 
-  Eye,
-  Keyboard,
-  Compass
+  Layers,
+  Compass,
+  FileSpreadsheet
 } from "lucide-react";
 
 interface NodePosition {
@@ -31,6 +32,10 @@ interface ObservatorySceneProps {
   onSelectService: (serviceId: string) => void;
   onWebGLFailure?: () => void;
   previewResidualRisk?: Record<string, number> | null;
+  viewMode: "3d" | "2d" | "list";
+  setViewMode: (mode: "3d" | "2d" | "list") => void;
+  onOpenLedger: () => void;
+  evidenceCount: number;
 }
 
 export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
@@ -42,17 +47,19 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
   onSelectService,
   onWebGLFailure,
   previewResidualRisk,
+  viewMode,
+  setViewMode,
+  onOpenLedger,
+  evidenceCount,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const badgesContainerRef = useRef<HTMLDivElement>(null);
   const badgeDomRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [controlsHelp, setControlsHelp] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
-  // References to keep Three.js state across renders
   const sceneState = useRef<{
     renderer: THREE.WebGLRenderer | null;
     scene: THREE.Scene | null;
@@ -71,67 +78,29 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
     nodes: new Map(),
     pulsePositions: [],
     nodePositions: new Map(),
-    targetCameraPos: new THREE.Vector3(0, 16, 28),
-    targetLookAt: new THREE.Vector3(0, 0, 0),
-    currentLookAt: new THREE.Vector3(0, 0, 0),
+    targetCameraPos: new THREE.Vector3(0, 14, 26),
+    targetLookAt: new THREE.Vector3(0, 1, 0),
+    currentLookAt: new THREE.Vector3(0, 1, 0),
     reqId: null,
   });
 
-  // Calculate clean layered coordinates based on dependency topology
+  // Procedural, topology-aware 3D node coordinates for arbitrary uploaded dependency graphs
   const computeNodeLayout = useCallback((): NodePosition[] => {
     const layout: NodePosition[] = [];
-    const count = services.length;
-    if (count === 0) return layout;
+    if (services.length === 0) return layout;
 
-    services.forEach((service, index) => {
+    const { positions3D } = computeGraphLayout(services, dependencies);
+
+    services.forEach((service) => {
       const isPredicted = service.id === predictedServiceId;
       const isCascade = affectedServiceIds.includes(service.id);
-
-      // Hierarchical layered placement:
-      // Data/Storage tiers at rear
-      // Internal services in center
-      // Ingress / gateways in front
-      let x = 0;
-      let y = 0;
-      let z = 0;
-
-      if (service.id.includes("db") || service.id.includes("inventory") || service.id.includes("store")) {
-        x = -4;
-        y = -2;
-        z = -8;
-      } else if (service.id.includes("gateway") || service.id.includes("ingress") || service.id.includes("edge")) {
-        x = 0;
-        y = 5;
-        z = 10;
-      } else if (service.id.includes("checkout") || service.id.includes("web") || service.id.includes("api")) {
-        x = -6;
-        y = 2;
-        z = 2;
-      } else if (service.id.includes("order") || service.id.includes("core")) {
-        x = -2;
-        y = 0;
-        z = -2;
-      } else if (service.id.includes("payment") || service.id.includes("billing")) {
-        x = 7;
-        y = 1;
-        z = 1;
-      } else if (service.id.includes("worker") || service.id.includes("notification") || service.id.includes("queue")) {
-        x = 6;
-        y = -3;
-        z = -6;
-      } else {
-        const angle = (index / count) * Math.PI * 2;
-        const radius = 12;
-        x = Math.cos(angle) * radius;
-        z = Math.sin(angle) * radius;
-        y = Math.sin(index) * 2;
-      }
+      const pos = positions3D.get(service.id) || { x: 0, y: 0, z: 0 };
 
       layout.push({
         id: service.id,
-        x,
-        y,
-        z,
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
         service,
         isPredicted,
         isCascadeAffected: isCascade,
@@ -139,23 +108,20 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
     });
 
     return layout;
-  }, [services, predictedServiceId, affectedServiceIds]);
+  }, [services, dependencies, predictedServiceId, affectedServiceIds]);
 
-  // Focus camera smoothly on specific node
   const focusOnNode = useCallback((nodeId: string) => {
     const pos = sceneState.current.nodePositions.get(nodeId);
     if (!pos) return;
     sceneState.current.targetLookAt.copy(pos);
-    sceneState.current.targetCameraPos.set(pos.x, pos.y + 6, pos.z + 14);
+    sceneState.current.targetCameraPos.set(pos.x, pos.y + 5, pos.z + 13);
   }, []);
 
-  // Reset camera view
   const resetCamera = useCallback(() => {
-    sceneState.current.targetLookAt.set(0, 0, 0);
-    sceneState.current.targetCameraPos.set(0, 16, 28);
+    sceneState.current.targetLookAt.set(0, 1, 0);
+    sceneState.current.targetCameraPos.set(0, 14, 26);
   }, []);
 
-  // React to external selectedServiceId changes
   useEffect(() => {
     if (selectedServiceId) {
       focusOnNode(selectedServiceId);
@@ -164,18 +130,15 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
     }
   }, [selectedServiceId, focusOnNode, services]);
 
-  // Main Three.js Scene Setup & Loop
+  // Main Three.js setup
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
 
     const width = container.clientWidth;
-    const height = container.clientHeight || 480;
+    const height = container.clientHeight || 460;
 
-    // P1 Fix: Safely instantiate Three.js WebGLRenderer directly.
-    // Three.js r163+ requires WebGL 2. We do NOT call canvas.getContext('webgl') beforehand
-    // because that permanently locks the canvas to WebGL 1 and breaks WebGL 2 initialization.
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
@@ -187,40 +150,39 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       sceneState.current.renderer = renderer;
-    } catch (renderInitErr) {
-      console.warn("Three.js WebGLRenderer initialization failed:", renderInitErr);
+    } catch (err) {
+      console.warn("WebGL2 initialization failed:", err);
       onWebGLFailure?.();
       return;
     }
 
-    // Scene & Camera
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x080c14, 0.015);
+    scene.fog = new THREE.FogExp2(0x080c14, 0.014);
     sceneState.current.scene = scene;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 16, 28);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 14, 26);
+    camera.lookAt(0, 1, 0);
     sceneState.current.camera = camera;
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
-    dirLight.position.set(10, 20, 15);
+    const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.1);
+    dirLight.position.set(12, 22, 16);
     scene.add(dirLight);
 
     const redBeaconLight = new THREE.PointLight(0xef4444, 2.5, 40);
     redBeaconLight.position.set(0, 0, 0);
     scene.add(redBeaconLight);
 
-    // Grid Floor
+    // Subtle Grid Floor
     const gridHelper = new THREE.GridHelper(50, 25, 0x1e293b, 0x0f172a);
     gridHelper.position.y = -6;
     scene.add(gridHelper);
 
-    // Nodes Creation
+    // Node Meshes
     const layout = computeNodeLayout();
     const nodeMeshes = new Map<string, THREE.Mesh>();
     const nodePositions = new Map<string, THREE.Vector3>();
@@ -239,31 +201,41 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       else if (effectiveScore >= 55) colorHex = 0xf97316; // orange
       else if (effectiveScore >= 25) colorHex = 0xf59e0b; // amber
 
-      const size = item.isPredicted ? 1.5 : item.isCascadeAffected ? 1.2 : 0.9;
-      const sphereGeo = new THREE.SphereGeometry(size, 24, 24);
-      const sphereMat = new THREE.MeshStandardMaterial({
-        color: colorHex,
-        roughness: 0.3,
+      // Bespoke modular microservice architecture chassis
+      const chassisGeo = new THREE.BoxGeometry(
+        item.isPredicted ? 2.6 : 2.2,
+        item.isPredicted ? 1.4 : 1.1,
+        item.isPredicted ? 2.0 : 1.7
+      );
+      const chassisMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        roughness: 0.25,
         metalness: 0.8,
         emissive: colorHex,
-        emissiveIntensity: item.isPredicted ? 0.6 : item.isCascadeAffected ? 0.35 : 0.15,
+        emissiveIntensity: item.isPredicted ? 0.4 : item.isCascadeAffected ? 0.22 : 0.06,
       });
 
-      const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+      const mesh = new THREE.Mesh(chassisGeo, chassisMat);
       mesh.position.copy(pos);
       mesh.userData = { id: item.id };
       scene.add(mesh);
       nodeMeshes.set(item.id, mesh);
 
-      // Pulsing beacon ring for predicted root failure
+      // Front diagnostic status LED strip
+      const ledGeo = new THREE.BoxGeometry(item.isPredicted ? 2.2 : 1.8, 0.2, 0.05);
+      const ledMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      const ledMesh = new THREE.Mesh(ledGeo, ledMat);
+      ledMesh.position.set(0, 0.35, item.isPredicted ? 1.02 : 0.87);
+      mesh.add(ledMesh);
+
       if (item.isPredicted) {
         redBeaconLight.position.copy(pos);
-        const ringGeo = new THREE.RingGeometry(2.0, 2.3, 32);
+        const ringGeo = new THREE.RingGeometry(1.8, 2.1, 32);
         const ringMat = new THREE.MeshBasicMaterial({
           color: 0xef4444,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.7,
+          opacity: 0.65,
         });
         const ring = new THREE.Mesh(ringGeo, ringMat);
         ring.rotation.x = Math.PI / 2;
@@ -276,9 +248,7 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
     sceneState.current.nodes = nodeMeshes;
     sceneState.current.nodePositions = nodePositions;
 
-    // P1 Fix: Dependency Conduits & Cascade Pulses
-    // Edge direction: 'from' depends on 'to'.
-    // Failure spreads FROM 'to' (the failing upstream) TO 'from' (the dependent)!
+    // Dependency Conduits & Cascading Pulses
     const pulsePositions: { points: THREE.Points; curve: THREE.CatmullRomCurve3; progress: number }[] = [];
 
     dependencies.forEach((edge) => {
@@ -289,7 +259,6 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       const mid = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
       mid.y += 1.8;
 
-      // Conduit line from dependent to dependency
       const conduitCurve = new THREE.CatmullRomCurve3([fromPos, mid, toPos]);
       const points = conduitCurve.getPoints(24);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -302,14 +271,13 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         color: isCascadeEdge ? 0xa855f7 : 0x334155,
         linewidth: isCascadeEdge ? 2 : 1,
         transparent: true,
-        opacity: isCascadeEdge ? 0.85 : 0.4,
+        opacity: isCascadeEdge ? 0.8 : 0.35,
       });
 
       const line = new THREE.Line(lineGeo, lineMat);
       scene.add(line);
 
-      // Animated energy pulse along cascading edges:
-      // Travels FROM 'to' (failure source) TO 'from' (affected dependent)!
+      // Pulse traveling from failure source 'to' -> dependent 'from'
       if (isCascadeEdge) {
         const pulseCurve = new THREE.CatmullRomCurve3([toPos, mid, fromPos]);
         const pulseGeo = new THREE.BufferGeometry();
@@ -317,9 +285,9 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         pulseGeo.setAttribute("position", new THREE.BufferAttribute(pulsePos, 3));
         const pulseMat = new THREE.PointsMaterial({
           color: 0xd946ef,
-          size: 0.9,
+          size: 0.8,
           transparent: true,
-          opacity: 0.95,
+          opacity: 0.9,
         });
         const pulse = new THREE.Points(pulseGeo, pulseMat);
         scene.add(pulse);
@@ -329,7 +297,7 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
 
     sceneState.current.pulsePositions = pulsePositions;
 
-    // P1 Fix: Unified Pointer & Touch & Gestures Handling
+    // Pointer Interaction Handlers
     const activePointers = new Map<number, { x: number; y: number }>();
     let prevPinchDist = 0;
     let isDragging = false;
@@ -345,7 +313,6 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         prevPointerX = e.clientX;
         prevPointerY = e.clientY;
       } else if (activePointers.size === 2) {
-        // Pinch zoom start
         const pts = Array.from(activePointers.values());
         prevPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
       }
@@ -356,7 +323,6 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }
 
-      // Multi-touch pinch zoom
       if (activePointers.size === 2) {
         const pts = Array.from(activePointers.values());
         const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
@@ -372,7 +338,6 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         return;
       }
 
-      // Single pointer orbit drag
       if (isDragging && activePointers.size === 1) {
         const deltaX = (e.clientX - prevPointerX) * 0.006;
         const deltaY = (e.clientY - prevPointerY) * 0.006;
@@ -393,7 +358,6 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         prevPointerY = e.clientY;
       }
 
-      // Raycast for hover state
       const rect = canvas.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -405,8 +369,7 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       const intersects = raycaster.intersectObjects(Array.from(nodeMeshes.values()));
       if (intersects.length > 0) {
         const hit = intersects[0].object;
-        const id = hit.userData.id;
-        setHoveredNodeId(id);
+        setHoveredNodeId(hit.userData.id);
         canvas.style.cursor = "pointer";
       } else {
         setHoveredNodeId(null);
@@ -419,7 +382,7 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       try {
         canvas.releasePointerCapture(e.pointerId);
       } catch {
-        // ignore if already released
+        // ignore
       }
 
       if (activePointers.size === 0) {
@@ -440,8 +403,7 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
 
       const intersects = raycaster.intersectObjects(Array.from(nodeMeshes.values()));
       if (intersects.length > 0) {
-        const id = intersects[0].object.userData.id;
-        onSelectService(id);
+        onSelectService(intersects[0].object.userData.id);
       }
     };
 
@@ -455,13 +417,11 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
       sceneState.current.targetCameraPos.copy(camera.position);
     };
 
-    // P1 Fix: Keyboard Navigation on Canvas
     const handleKeyDown = (e: KeyboardEvent) => {
       const offset = camera.position.clone().sub(sceneState.current.currentLookAt);
       const radius = offset.length();
       let theta = Math.atan2(offset.x, offset.z);
       let phi = Math.acos(Math.max(-1, Math.min(1, offset.y / radius)));
-
       let handled = false;
 
       if (e.key === "ArrowLeft") {
@@ -477,31 +437,26 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         phi = Math.min(Math.PI / 2 - 0.05, phi + 0.08);
         handled = true;
       } else if (e.key === "+" || e.key === "=") {
-        const newRadius = Math.max(10, radius - 2);
-        offset.setLength(newRadius);
+        offset.setLength(Math.max(10, radius - 2));
         camera.position.copy(sceneState.current.currentLookAt).add(offset);
         sceneState.current.targetCameraPos.copy(camera.position);
         handled = true;
       } else if (e.key === "-" || e.key === "_") {
-        const newRadius = Math.min(50, radius + 2);
-        offset.setLength(newRadius);
+        offset.setLength(Math.min(50, radius + 2));
         camera.position.copy(sceneState.current.currentLookAt).add(offset);
         sceneState.current.targetCameraPos.copy(camera.position);
         handled = true;
       } else if (e.key === "Tab") {
-        // Cycle focused node
         e.preventDefault();
         const nextIdx = e.shiftKey
           ? (focusedIndex - 1 + services.length) % services.length
           : (focusedIndex + 1) % services.length;
         setFocusedIndex(nextIdx);
-        const nextService = services[nextIdx];
-        if (nextService) focusOnNode(nextService.id);
+        if (services[nextIdx]) focusOnNode(services[nextIdx].id);
         handled = true;
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        const curr = services[focusedIndex];
-        if (curr) onSelectService(curr.id);
+        if (services[focusedIndex]) onSelectService(services[focusedIndex].id);
         handled = true;
       } else if (e.key.toLowerCase() === "r" || e.key === "Home") {
         resetCamera();
@@ -524,43 +479,64 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     canvas.addEventListener("keydown", handleKeyDown);
 
-    // Handle Resize
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
       const newW = container.clientWidth;
-      const newH = container.clientHeight || 480;
+      const newH = container.clientHeight || 460;
       camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
       renderer.setSize(newW, newH);
     };
     window.addEventListener("resize", handleResize);
 
-    // P2 Fix: Animation loop updates HTML node overlays via direct DOM style transforms,
-    // avoiding React reconciliation overhead and 60 rerenders per second!
+    // WebGL Context Loss Handling per immersive-3d-motion-designer
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      console.warn("WebGL context lost. Triggering graceful fallback to 2D dependency view.");
+      if (sceneState.current.reqId) cancelAnimationFrame(sceneState.current.reqId);
+      onWebGLFailure?.();
+    };
+    canvas.addEventListener("webglcontextlost", handleContextLost, false);
+
+    // Performance budget: pause animation loop when canvas is off-screen or tab is backgrounded
+    let isVisible = true;
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        isVisible = entry.isIntersecting && !document.hidden;
+      }
+    }, { threshold: 0.05 });
+    intersectionObserver.observe(container);
+
+    const handleVisibilityChange = () => {
+      isVisible = !document.hidden;
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Animation Loop with Direct DOM updates
     const clock = new THREE.Clock();
 
     const animate = () => {
       sceneState.current.reqId = requestAnimationFrame(animate);
+      if (!isVisible) return;
 
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Smooth camera interpolation
       sceneState.current.currentLookAt.lerp(sceneState.current.targetLookAt, 0.08);
       camera.position.lerp(sceneState.current.targetCameraPos, 0.06);
       camera.lookAt(sceneState.current.currentLookAt);
 
-      // Beacon ring expansion
       scene.children.forEach((child) => {
         if (child.userData.isBeaconRing) {
-          const s = 1 + (Math.sin(elapsed * 3) + 1) * 0.25;
+          const s = 1 + (Math.sin(elapsed * 2.5) + 1) * 0.2;
           child.scale.set(s, s, s);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (child as any).material.opacity = 0.8 - (s - 1) * 1.5;
+          const mat = (child as THREE.Mesh).material;
+          if (mat && "opacity" in mat) {
+            (mat as { opacity: number }).opacity = 0.7 - (s - 1) * 1.5;
+          }
         }
       });
 
-      // Cascade pulse packet animation
       pulsePositions.forEach((pulse) => {
         pulse.progress += delta * 0.45;
         if (pulse.progress > 1) pulse.progress = 0;
@@ -572,9 +548,9 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
 
       renderer.render(scene, camera);
 
-      // P2 Fix: Direct DOM style transform update (0 React rerenders per frame)
+      // Direct DOM label projection
       const curW = container.clientWidth;
-      const curH = container.clientHeight || 480;
+      const curH = container.clientHeight || 460;
 
       nodePositions.forEach((pos, id) => {
         const badgeEl = badgeDomRefs.current.get(id);
@@ -585,22 +561,24 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
         const screenX = ((v.x + 1) * curW) / 2;
         const screenY = ((-v.y + 1) * curH) / 2;
 
-        if (isBehind || screenX < -60 || screenX > curW + 60 || screenY < -60 || screenY > curH + 60) {
+        if (isBehind || screenX < -80 || screenX > curW + 80 || screenY < -80 || screenY > curH + 80) {
           badgeEl.style.opacity = "0";
           badgeEl.style.pointerEvents = "none";
         } else {
           badgeEl.style.opacity = "1";
           badgeEl.style.pointerEvents = "auto";
-          badgeEl.style.transform = `translate3d(${screenX}px, ${screenY - 36}px, 0) translate(-50%, -100%)`;
+          badgeEl.style.transform = `translate3d(${screenX}px, ${screenY - 32}px, 0) translate(-50%, -100%)`;
         }
       });
     };
 
     animate();
 
-    // Resource Cleanup
     return () => {
       if (sceneState.current.reqId) cancelAnimationFrame(sceneState.current.reqId);
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      intersectionObserver.disconnect();
       canvas.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
@@ -638,152 +616,198 @@ export const ObservatoryScene: React.FC<ObservatorySceneProps> = ({
   ]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-[480px] bg-obs-bg border border-obs-border rounded-xl overflow-hidden shadow-2xl focus-within:ring-2 focus-within:ring-obs-accent"
-    >
-      {/* 3D WebGL Canvas with unified pointer & keyboard navigation */}
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
-        tabIndex={0}
-        aria-label="Interactive 3D incident dependency map. Use mouse, touch, or arrow keys to orbit; tab to cycle nodes; enter to inspect."
-      />
+    <div className="space-y-3">
+      {/* Topology Toolbar (View switchers, focus actions, evidence ledger) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-[#18181B] tracking-tight text-sm font-sans">
+            Service Topology & Blast Radius
+          </span>
 
-      {/* HTML Tactical Overlay Tags (Direct DOM transform manipulation, zero React rerenders) */}
-      <div ref={badgesContainerRef} className="absolute inset-0 pointer-events-none">
-        {services.map((service, index) => {
-          const isSelected = service.id === selectedServiceId;
-          const isPredicted = service.id === predictedServiceId;
-          const isCascade = affectedServiceIds.includes(service.id);
-          const isHovered = service.id === hoveredNodeId;
-          const isKeyboardFocused = index === focusedIndex;
-
-          let effectiveScore = service.riskScore;
-          if (previewResidualRisk && previewResidualRisk[service.id] !== undefined) {
-            effectiveScore = previewResidualRisk[service.id];
-          }
-
-          const badgeColor =
-            effectiveScore >= 80
-              ? "border-rose-500 bg-rose-950/85 text-rose-300"
-              : effectiveScore >= 55
-              ? "border-orange-500 bg-orange-950/85 text-orange-300"
-              : effectiveScore >= 25
-              ? "border-amber-500 bg-amber-950/85 text-amber-300"
-              : "border-emerald-500 bg-emerald-950/85 text-emerald-300";
-
-          return (
-            <div
-              key={service.id}
-              ref={(el) => {
-                if (el) badgeDomRefs.current.set(service.id, el);
-                else badgeDomRefs.current.delete(service.id);
-              }}
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                transform: "translate3d(0, 0, 0)",
-                opacity: 0,
-                willChange: "transform, opacity",
-              }}
-              className={`transition-transform duration-75 ${
-                isHovered || isSelected || isKeyboardFocused ? "scale-110 z-20" : "scale-100 z-10"
+          {/* Contextual View Mode Switcher */}
+          <div className="flex items-center rounded-full bg-[#F4F4F5] p-1 border border-[#E4E4E7]" role="group" aria-label="Observatory visualization mode">
+            <button
+              onClick={() => setViewMode("3d")}
+              className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 transition-all ${
+                viewMode === "3d"
+                  ? "bg-[#18181B] text-white font-medium shadow-sm"
+                  : "text-[#71717A] hover:text-[#18181B]"
               }`}
+              title="Interactive 3D WebGL Observatory"
             >
-              <button
-                onClick={() => onSelectService(service.id)}
-                className={`px-2 py-1 rounded-md border font-mono text-[11px] font-semibold flex items-center gap-1.5 backdrop-blur-md shadow-lg transition-all ${badgeColor} ${
-                  isSelected || isKeyboardFocused ? "ring-2 ring-obs-accent ring-offset-2 ring-offset-black" : ""
-                } ${isPredicted ? "animate-pulse" : ""}`}
-                title={`Inspect ${service.id} telemetry (Risk: ${effectiveScore}/100)`}
-              >
-                {isPredicted && <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />}
-                {isCascade && !isPredicted && <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />}
-                <span>{service.id}</span>
-                <span className="text-[10px] px-1 py-0.2 rounded bg-black/60 text-white font-mono">
-                  {effectiveScore}
-                </span>
-              </button>
-            </div>
-          );
-        })}
+              <Layers className="h-3.5 w-3.5" />
+              <span>3D</span>
+            </button>
+            <button
+              onClick={() => setViewMode("2d")}
+              className={`px-3 py-1 text-xs rounded-full transition-all ${
+                viewMode === "2d"
+                  ? "bg-[#18181B] text-white font-medium shadow-sm"
+                  : "text-[#71717A] hover:text-[#18181B]"
+              }`}
+              title="2D Vector Blast Radius Graph"
+            >
+              <span>2D Graph</span>
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-1 text-xs rounded-full transition-all ${
+                viewMode === "list"
+                  ? "bg-[#18181B] text-white font-medium shadow-sm"
+                  : "text-[#71717A] hover:text-[#18181B]"
+              }`}
+              title="Accessible Tabular Service Matrix"
+            >
+              <span>Table</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Evidence Ledger trigger button */}
+        <button
+          onClick={onOpenLedger}
+          className="text-xs text-[#18181B] hover:text-[#FC4778] flex items-center gap-1.5 font-medium transition-colors"
+        >
+          <FileSpreadsheet className="h-3.5 w-3.5" />
+          <span>Evidence Ledger ({evidenceCount})</span>
+        </button>
       </div>
 
-      {/* Floating HUD Controls */}
-      <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
-        {predictedServiceId && (
+      {/* 3D Canvas Box */}
+      <div
+        ref={containerRef}
+        className="relative w-full h-[480px] bg-[#080C14] border border-[#E4E4E7] rounded-3xl overflow-hidden shadow-md focus-within:ring-2 focus-within:ring-[#18181B]"
+      >
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
+          tabIndex={0}
+          aria-label="Interactive 3D dependency topology map. Use pointer or arrow keys to orbit; tab to cycle nodes; enter to inspect."
+        />
+
+        {/* Refined Tactical HTML Labels (zero overlap with generous 3D spacing) */}
+        <div className="absolute inset-0 pointer-events-none">
+          {services.map((service, index) => {
+            const isSelected = service.id === selectedServiceId;
+            const isPredicted = service.id === predictedServiceId;
+            const isCascade = affectedServiceIds.includes(service.id);
+            const isHovered = service.id === hoveredNodeId;
+            const isKeyboardFocused = index === focusedIndex;
+
+            let effectiveScore = service.riskScore;
+            if (previewResidualRisk && previewResidualRisk[service.id] !== undefined) {
+              effectiveScore = previewResidualRisk[service.id];
+            }
+
+            const badgeStyle = isPredicted
+              ? "border-rose-500 bg-rose-950/90 text-rose-200 ring-1 ring-rose-500"
+              : isCascade
+              ? "border-purple-500/80 bg-purple-950/80 text-purple-200"
+              : "border-zinc-700 bg-zinc-900/90 text-zinc-200";
+
+            return (
+              <div
+                key={service.id}
+                ref={(el) => {
+                  if (el) badgeDomRefs.current.set(service.id, el);
+                  else badgeDomRefs.current.delete(service.id);
+                }}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  transform: "translate3d(0, 0, 0)",
+                  opacity: 0,
+                  willChange: "transform, opacity",
+                }}
+                className={`transition-transform duration-75 ${
+                  isHovered || isSelected || isKeyboardFocused ? "scale-105 z-20" : "scale-100 z-10"
+                }`}
+              >
+                <button
+                  onClick={() => onSelectService(service.id)}
+                  className={`px-3 py-1 rounded-full border text-xs font-mono font-medium flex items-center gap-1.5 backdrop-blur-md shadow-lg transition-all ${badgeStyle} ${
+                    isSelected || isKeyboardFocused ? "ring-2 ring-white ring-offset-2 ring-offset-[#080C14]" : ""
+                  }`}
+                  title={`Inspect ${service.id} telemetry (Risk: ${effectiveScore}/100)`}
+                >
+                  {isPredicted && <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />}
+                  {isCascade && !isPredicted && <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />}
+                  <span className="font-semibold">{service.id}</span>
+                  <span className="text-[11px] font-mono opacity-80">
+                    {effectiveScore}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Floating Top Controls */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+          {predictedServiceId && (
+            <button
+              onClick={() => focusOnNode(predictedServiceId)}
+              className="px-3 py-1.5 text-xs rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-rose-500/50 text-rose-300 flex items-center gap-1.5 backdrop-blur-md transition-colors shadow-sm"
+              title="Focus camera on predicted primary failure node"
+            >
+              <Crosshair className="h-3.5 w-3.5" />
+              <span>Focus Culprit</span>
+            </button>
+          )}
+
           <button
-            onClick={() => focusOnNode(predictedServiceId)}
-            className="px-2.5 py-1 text-xs font-mono rounded bg-obs-surfaceElevated/90 hover:bg-obs-border border border-rose-500/50 text-rose-300 flex items-center gap-1 backdrop-blur-md transition-colors"
-            title="Focus camera on predicted primary failure node"
+            onClick={resetCamera}
+            className="p-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white backdrop-blur-md transition-colors shadow-sm"
+            title="Reset camera view (R / Home)"
+            aria-label="Reset camera"
           >
-            <Crosshair className="h-3.5 w-3.5" />
-            <span>Focus Culprit</span>
+            <RotateCcw className="h-4 w-4" />
           </button>
+
+          <button
+            onClick={() => setControlsHelp(!controlsHelp)}
+            className="p-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white backdrop-blur-md transition-colors shadow-sm"
+            title="Controls guide"
+            aria-label="Controls guide"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Controls Guide Drawer */}
+        {controlsHelp && (
+          <div className="absolute top-14 right-4 w-68 bg-zinc-900/95 border border-zinc-700 rounded-2xl p-4 text-xs text-zinc-300 z-30 shadow-2xl backdrop-blur-md">
+            <div className="font-semibold text-white mb-2.5 flex items-center gap-2">
+              <Compass className="h-4 w-4 text-[#FC4778]" />
+              <span>3D Navigation</span>
+            </div>
+            <ul className="space-y-1.5 text-[11px] font-mono">
+              <li>• <strong className="text-white">Drag / Pointer:</strong> Orbit scene</li>
+              <li>• <strong className="text-white">Scroll / Pinch:</strong> Zoom in & out</li>
+              <li>• <strong className="text-white">Arrow Keys:</strong> Keyboard camera orbit</li>
+              <li>• <strong className="text-white">Tab / Enter:</strong> Cycle & inspect nodes</li>
+              <li>• <strong className="text-purple-400">Magenta:</strong> Cascading failure path</li>
+              <li>• <strong className="text-rose-400">Crimson:</strong> Predicted failure node</li>
+            </ul>
+          </div>
         )}
 
-        <button
-          onClick={resetCamera}
-          className="p-1.5 rounded bg-obs-surfaceElevated/90 hover:bg-obs-border border border-obs-border text-obs-textMuted hover:text-white backdrop-blur-md transition-colors"
-          title="Reset camera viewpoint (Home / R)"
-          aria-label="Reset camera"
-        >
-          <RotateCcw className="h-4 w-4" />
-        </button>
-
-        <button
-          onClick={() => setControlsHelp(!controlsHelp)}
-          className="p-1.5 rounded bg-obs-surfaceElevated/90 hover:bg-obs-border border border-obs-border text-obs-textMuted hover:text-white backdrop-blur-md transition-colors"
-          title="Observatory navigation and accessibility controls"
-          aria-label="Controls help"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Controls Help Overlay Modal */}
-      {controlsHelp && (
-        <div className="absolute top-12 right-3 w-72 bg-obs-surfaceElevated/95 border border-obs-border rounded-lg p-3 text-xs font-mono text-obs-textMuted z-30 shadow-2xl backdrop-blur-md">
-          <div className="font-bold text-white mb-2 flex items-center gap-1.5">
-            <Compass className="h-3.5 w-3.5 text-obs-accent" />
-            <span>Observatory Controls & Accessibility</span>
-          </div>
-          <ul className="space-y-1.5 text-[11px]">
-            <li>• <strong className="text-white">Mouse / Pointer Drag:</strong> Orbit camera</li>
-            <li>• <strong className="text-white">Scroll / Touch Pinch:</strong> Zoom in & out</li>
-            <li>• <strong className="text-white">Arrow Keys [← → ↑ ↓]:</strong> Orbit camera via keyboard</li>
-            <li>• <strong className="text-white">Tab / Shift+Tab:</strong> Cycle node focus</li>
-            <li>• <strong className="text-white">Enter / Space:</strong> Inspect focused node</li>
-            <li>• <strong className="text-white">R / Home:</strong> Reset camera view</li>
-            <li>• <strong className="text-purple-400">Magenta Pulses:</strong> Direction of cascading failure</li>
-            <li>• <strong className="text-rose-400">Red Beacon:</strong> Predicted culprit root cause</li>
-          </ul>
-        </div>
-      )}
-
-      {/* Bottom Status Ticker */}
-      <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-2">
-        <div className="px-2.5 py-1 rounded bg-obs-surfaceElevated/90 border border-obs-border text-[11px] font-mono text-obs-textMuted backdrop-blur-md flex items-center gap-2">
-          <span className="flex items-center gap-1 text-rose-400">
-            <span className="h-2 w-2 rounded-full bg-rose-500 inline-block" />
-            Failure Vector
+        {/* Clean Bottom Ticker */}
+        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-400 backdrop-blur-md shadow-sm">
+          <span className="flex items-center gap-1.5 text-rose-400">
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            Culprit Node
           </span>
-          <span className="text-obs-textDim">•</span>
-          <span className="flex items-center gap-1 text-purple-400">
-            <span className="h-2 w-2 rounded-full bg-purple-500 inline-block" />
-            Cascading Impact
+          <span className="text-zinc-600">•</span>
+          <span className="flex items-center gap-1.5 text-purple-400">
+            <span className="h-2 w-2 rounded-full bg-purple-500" />
+            Downstream Impact
           </span>
-          <span className="text-obs-textDim">•</span>
-          <span className="flex items-center gap-1 text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+          <span className="text-zinc-600">•</span>
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
             Nominal
-          </span>
-          <span className="text-obs-textDim">•</span>
-          <span className="flex items-center gap-1 text-obs-accent text-[10px]">
-            <Keyboard className="h-3 w-3" />
-            Keyboard / Pointer Ready
           </span>
         </div>
       </div>

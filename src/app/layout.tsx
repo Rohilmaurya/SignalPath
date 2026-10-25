@@ -12,11 +12,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
-      <body className="min-h-screen bg-obs-bg text-obs-text selection:bg-obs-accent selection:text-black">
+      <body className="min-h-screen bg-[#FAFAFA] text-[#18181B] selection:bg-[#FC4778] selection:text-white antialiased font-sans">
         {children}
       </body>
     </html>

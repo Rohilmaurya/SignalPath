@@ -1,34 +1,77 @@
-# App flow
+# App flow: SignalPath
 
-## Primary path: sample incident replay
+**Revision:** 2026-10-25 — story-led and upload-first
 
-1. **Open dashboard.** Show the product name, “simulated telemetry” context, sample-load control, and optional upload controls. Load a coherent sample analysis by default or make it one obvious click away.
-2. **Analyze.** Show progress and the current stage in plain language. Keep the UI responsive.
-3. **System overview.** Show incident time range, number of services, data sufficiency, predicted next-at-risk service, and heuristic risk band/score.
-4. **Blast Radius.** Render service dependency nodes with risk labels and directed edges. Emphasize the predicted service and traversed downstream cascade. Clicking/focusing a service reveals its score factors and dependencies. On small screens or graph failure, show the same information as an ordered dependency list.
-5. **Prediction and evidence.** Show root-cause hypothesis and symptom labels with evidence citations. Each citation opens or scrolls to the associated metric window or log excerpt. Keep observed signal and model interpretation visually distinct.
-6. **Explanation audience.** Toggle Engineer / Executive. Engineer mode uses service names, metric changes, log IDs, and dependency mechanics. Executive mode summarizes operational consequence and confidence limits. Citations and underlying facts remain identical.
-7. **Cascade.** List likely affected dependents in path order, with the edge/reason and estimated severity contribution.
-8. **Recovery comparison.** Compare “Do nothing” to a few simulated options. Show residual system risk and estimated recovery time side by side, sort by lower risk then shorter recovery, and label all as simulations. No action button executes changes.
+## 1. Landing and story
 
-## Upload path
+1. Open the site at the first story chapter. Do not load telemetry, call the analysis API, or show a precomputed incident.
+2. Show the product promise, one concise supporting sentence, a restrained authored 3D scene, and two clear paths: continue the story or skip to upload.
+3. Scroll through one idea per chapter:
+   - **Signals:** show how selected metrics/logs can indicate degradation. Any example values are marked illustrative.
+   - **Dependencies:** show how services rely on other services using a crafted model that clearly shows direction.
+   - **Cascade:** animate one illustrative failure path to explain downstream impact; make clear it is not a live incident.
+   - **Recovery:** show the concept of comparing a simulated response with doing nothing; mark figures illustrative and non-predictive.
+4. Each chapter advances the visual story without forcing a scroll trap. Navigation is keyboard-operable. Reduced-motion mode uses stable scene states and simple fades/cuts.
+5. The final story chapter transitions into the upload workspace. A persistent “Skip to upload” link is allowed if compact and unobtrusive.
 
-1. User selects one CSV and one dependency JSON, or drops both into clearly labeled controls.
-2. Client checks basic file types and submits them to `POST /api/analyze` as multipart form data.
-3. Server validates contents. If invalid, return specific guidance (file, row/field when possible), preserve the sample dashboard, and allow correction.
-4. On valid analysis, replace dashboard data with the uploaded run and show its filename/time range.
-5. If the data has too little usable history, show data coverage and missing requirements. Display any safely computed descriptive signals, but withhold next-failure prediction, cascade forecast, and scenario ranking dependent on it.
+## 2. Empty upload workspace
 
-## AI availability states
+1. Show an intentional empty state explaining the two inputs:
+   - telemetry CSV with timestamp, service, level, and message; optional metric columns may improve analysis;
+   - dependency JSON describing services and directed dependency edges.
+2. Make what is processed, retention behavior, and forecast limitations concise and discoverable.
+3. User selects the files and explicitly submits Analyze. No model request or forecast occurs on file selection alone.
+4. Show filenames, size/format checks, remove/replace controls, and one primary Analyze action. No sample file is loaded or offered in the default user flow.
+5. If an optional standalone demo exists in a later approved iteration, it must be explicitly user-invoked and visually separated from the upload analysis. The current shipped flow has no bundled log fixture.
 
-- **Live explanation:** API key configured and Gemini returned schema-valid output; show “Gemini-assisted explanation.”
-- **Sample fallback:** sample has a deterministic illustrative explanation when Gemini is unavailable; label it as demo/fallback, not model output.
-- **Uploaded fallback:** show deterministic symptom/evidence summary if suitable; clearly state AI explanation is unavailable and do not fabricate a rich root-cause claim.
-- **Provider error:** preserve deterministic risk/cascade/scenarios and show a small, non-blocking explanation status. Do not expose keys, stack traces, or raw provider errors.
+## 3. Analysis progress and failures
 
-## Empty, invalid, and narrow-screen states
+1. While POST /api/analyze runs, show a short progress state with the current step in plain language.
+2. Keep upload state and previous result available. If this is a new run, identify it as pending; do not silently replace the previous result until the response is valid.
+3. On invalid files, show the relevant file, row/field, and correction. Preserve the current valid result.
+4. On network/server failure, offer retry and keep the uploaded file selection.
+5. On insufficient history, show coverage and missing requirements. Do not show a likely-failing service, forecast cascade, or scenario ranking.
 
-- Empty: make sample replay the obvious first action.
-- Invalid: explain what to fix, avoid clearing the previous valid result.
-- Insufficient history: explicitly state “not enough usable history for a forecast,” identify the observed window/required fields, and offer the sample replay.
-- Narrow screen: stack overview, prediction, cascade, and recovery cards; allow graph scrolling or show list fallback; retain readable labels and keyboard operation.
+## 4. Compact results workspace
+
+On a valid analysis, move focus to the results heading and present a single calm scan path:
+
+1. **Prediction:** one service at risk, categorical risk/confidence and the top supporting signals. Label all scores as heuristic estimates, not probabilities.
+2. **Topology:** the uploaded service graph is shown as a purposeful 3D model, laid out from the actual services and dependency edges. Highlight the predicted service and primary possible cascade. Selecting a service reveals only its risk and direct dependency context.
+3. **Cause:** one concise hypothesis, visibly separated from direct observations. The engineer/executive control changes wording only and stays beside this explanation.
+4. **Cascade:** show the primary affected path first. Other paths and service details are collapsed or exposed by selecting a node.
+5. **Recovery:** compare the top-ranked simulated option with doing nothing using residual estimated risk and estimated recovery time. Alternative options and assumptions are in an expandable comparison. No action control executes anything.
+6. **Follow-up:** show a focused “Ask about this analysis” input. Answers are grounded in the current run and cite verified evidence. Do not claim real-world access or completed remediation.
+
+Do not repeat the same risk number, service name, or path in multiple panels unless the second display is necessary to understand the graph. Avoid an always-visible toolbox of unrelated controls.
+
+## 5. Evidence and detail requests
+
+- Selecting an evidence citation reveals the corresponding bounded metric window or log excerpt.
+- “Show evidence”, “Show all cascade paths”, “Compare all strategies”, and “Technical detail” reveal secondary information only when requested.
+- Engineer/executive mode changes explanation language while preserving facts and citations.
+- Missing or unknown evidence is stated plainly; it is never generated to fill a visual gap.
+
+## 6. Follow-up Q&A
+
+1. User enters a question about the active analysis.
+2. Client sends POST /api/ask with the question and a bounded context from the active response.
+3. Display a concise answer with supporting evidence and an uncertainty status. If unavailable, say which context is missing and ask a focused follow-up.
+4. The assistant may suggest safe investigative next steps. It never runs a command, changes infrastructure, or claims to have resolved the incident.
+5. Keep the conversation only in browser memory for this page session; reloading clears it.
+
+## 7. New run and reset
+
+- “New analysis” clears the current upload/results only after the user's explicit choice and returns to the empty uploader.
+- The user can revisit the story without losing current in-memory results; returning to the workspace restores the current analysis until reload.
+- Reloading the page clears uploaded data and conversation state.
+
+## 8. Responsive and accessible behavior
+
+- Story remains understandable without scroll-linked motion, WebGL, video, or sound.
+- 3D topology has a semantic service/dependency list alternative with identical information.
+- Keyboard users can skip, navigate chapters, operate upload controls, focus/select services, expand details, toggle explanation style, and ask questions.
+- Touch interactions are explicit and do not require hover.
+- Honor reduced-motion preferences. Pause hidden/offscreen animation and provide static fallbacks.
+- Narrow layouts keep the upload action and top prediction visible; avoid horizontally dense recovery tables and clipped service labels.
+

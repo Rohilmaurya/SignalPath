@@ -49,19 +49,31 @@ Third-party `hallmark` appears in the registry and its extension directory exist
 - UI should have responsive behavior, keyboard operation, visible focus, contrast, semantic controls, meaningful loading/empty/error/success states, and reduced-motion behavior where relevant. Don't invent metrics, endorsements or capabilities.
 - Handoffs report changed files, actual checks/results, setup, limitations, unresolved risks and next steps.
 
-## Application to the Orcathon SignalPath project
+## Current application direction — Orcathon SignalPath
 
-Current user-defined collaboration split: **Codex is planner/reviewer; Antigravity is executor/code writer.** Preserve that explicit split even though Antigravity's general Master workflow may normally include execution. Antigravity authors code and progress in `execution log.md`; Codex maintains `review.md` and the plan documents.
+This direction supersedes the previous sample-first dashboard project guidance. The user explicitly set the roles: **Codex plans and reviews; Antigravity executes and writes code.** Codex maintains requirements and review.md; Antigravity writes execution log.md.
 
-Relevant skill/agent selection for this three-hour Next.js + TypeScript operations dashboard:
+The product is now a scroll-led, editorial, high-craft story that ends in an upload-first operations analysis workspace. No preloaded sample logs, hardcoded server module, default analysis, or bundled telemetry fixture is part of the normal product path. The user submits a telemetry CSV and dependency JSON and explicitly selects Analyze. The tool returns a concise, evidence-grounded at-risk service, dynamic 3D topology based on the uploaded dependency graph, a possible cascade, simulated recovery comparisons, and grounded follow-up Q&A. No real infrastructure is changed.
 
-1. Start with Master Engineering Workflow and inspect the global hub plus this project's docs.
-2. Use Software Architecture Planning for the architecture/API/data-flow requirements already documented.
-3. Use Frontend Design for a distinctive but information-dense operations interface; use Frontend Engineer to implement it.
-4. Use Engineering & Coding for integration, validation, tests and review.
-5. Use Security Engineer proportionately because the project accepts uploads, calls an external model API, and handles secrets.
-6. Use UI/UX Judge for independent review of actual rendered experience.
-7. After first complete visual pass, invoke official `hallmark` only if installed/discoverable in Antigravity. Current config lists it but lacks its skill file; `hallmark-inspired` is available as a separate custom option. Record which actually ran.
-8. UI Motion Designer is optional only for meaningful micro-interactions. Immersive Web, Advanced Web Motion, Immersive 3D, and Immersive Experience Engineer are out of scope unless the product design adds meaningful narrative motion or real 3D. Don't add motion/3D as decoration.
+### Required Antigravity workflow for this redesign
 
-The project planning documents remain the source of product and technical requirements. This memory adds process guidance and does not replace or rewrite those documents.
+Start with Master Engineering Workflow and inspect %USERPROFILE%/.gemini/config/antigravity-system/ registry, applicable extensions, and any project overlay. Use the user-requested Antigravity skills for the current scroll/3D redesign: Master Engineering Workflow, Software Architecture Planning, Frontend Design, Immersive Web Experience Designer, UI Motion Designer, Advanced Web Motion Designer, Immersive 3D Motion Designer, and the custom hallmark-inspired skill. Use specialist agents Engineering Orchestrator, Engineering & Coding, Frontend Engineer, Immersive Experience Engineer, Security Engineer, and UI/UX Judge. Antigravity records actual skill/agent use and actual check outcomes; never claim work that did not happen.
+
+The earlier environment inspection found no installed upstream hallmark/SKILL.md. Recheck the current Antigravity environment before using it. Use the custom hallmark-inspired workflow and state the limitation if the upstream skill is still unavailable.
+
+### Product and architecture guidance
+
+- Preserve the existing Next.js + TypeScript app unless an actual blocker justifies a change; it already combines UI and server routes in one language and can keep Gemini credentials on the server.
+- Use the existing Three.js runtime for the authored interactive story scene and the uploaded-data topology; no paid scene editor is required. Blender is an optional free asset-authoring tool, with editable .blend sources and optimized GLB exports. Keep the uploaded-data topology derived from arbitrary input.
+- Google Flow may supply an offline, decorative story asset. It is not a runtime analysis dependency and cannot carry live labels/evidence/results. Provide a static poster and reduced-motion fallback.
+- Keep analysis details progressive: likely service, key evidence, primary cascade, best recovery-vs-baseline comparison first; secondary paths, details, assumptions, and alternative scenarios on request.
+- Gemini interprets bounded selected evidence and answers current-run questions; TypeScript remains authoritative for validation, risk, dependency traversal, citation checks, and scenario estimates.
+- Follow-up answers are evidence-grounded investigation/recovery guidance, not infrastructure execution or a claim to have fixed the incident.
+- No raw telemetry persistence by default. User data and logs are untrusted input, bounded, and never treated as model instructions.
+- Keep the story informative without scroll traps, and provide keyboard, touch, narrow-screen, reduced-motion, and non-WebGL alternatives.
+
+The authoritative product requirements are PRD.md, TRD.md, app-flow.md, backend-schema.md, and plan.md. ANTIGRAVITY_TASK.md holds current executor instructions; review.md is Codex-owned; execution log.md is Antigravity-owned.
+
+
+
+

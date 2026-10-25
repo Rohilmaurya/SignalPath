@@ -4,19 +4,20 @@
 
 @layer base {
   :root {
-    --bg-primary: #080C14;
-    --bg-secondary: #0F172A;
-    --bg-tertiary: #1E293B;
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    --border-subtle: #1E293B;
-    --border-strong: #334155;
-    --accent-cyan: #38BDF8;
-    --accent-emerald: #10B981;
-    --accent-amber: #F59E0B;
-    --accent-rose: #EF4444;
-    --accent-purple: #A855F7;
+    --bg-primary: #FAFAFA;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #F4F4F5;
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-muted: #71717A;
+    --border-subtle: #E4E4E7;
+    --border-strong: #D4D4D8;
+    --accent-black: #18181B;
+    --accent-coral: #FC4778;
+    --accent-emerald: #059669;
+    --accent-amber: #D97706;
+    --accent-rose: #DC2626;
+    --accent-purple: #9333EA;
   }
 
   body {
@@ -29,33 +30,31 @@
 
   /* Accessible focus indicators */
   *:focus-visible {
-    outline: 2px solid var(--accent-cyan);
+    outline: 2px solid var(--accent-black);
     outline-offset: 2px;
   }
 }
 
-/* Custom Tactical Scrollbars */
+/* Custom Editorial Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080C14;
+  background: #FAFAFA;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #D4D4D8;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #A1A1AA;
 }
 
-/* Radar grid background texture */
-.radar-grid {
-  background-image: 
-    linear-gradient(to right, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
-  background-size: 32px 32px;
+/* Incredibles.dev signature pale dotted grid texture */
+.dotted-grid {
+  background-image: radial-gradient(rgba(113, 113, 122, 0.16) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Reduced-motion overrides */
