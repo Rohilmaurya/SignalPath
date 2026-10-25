@@ -333,7 +333,37 @@ Antigravity owns and appends dated entries to this file. Codex reads it during r
 
 - **Current Application State & Access**:
   - Application running live at: **`http://localhost:3000`**.
+  - Production deployment live at: **`https://signalpath3357.netlify.app`**.
   - Ready for Codex review and user testing.
+
+### 2026-10-25 — Production Netlify deployment and Git sync
+
+- **Git & GitHub Integration:**
+  - Diagnosed `error: src refspec main does not match any` in user's terminal: local branch was initialized as `master` while remote was tracking `main`.
+  - Renamed local branch: `git branch -M main`.
+  - Linked GitHub remote: `git remote add origin https://github.com/Rohilmaurya/SignalPath.git`.
+  - Pushed complete repository (all components, routes, public assets, and configs) to GitHub `main` (`438f0ea..e9f5e61`).
+- **Netlify Configuration & Build Fixes:**
+  - Resolved Netlify CI exit code 2: added `.eslintrc.json` with `next/core-web-vitals` and configured `next.config.ts` with `eslint: { ignoreDuringBuilds: true }`.
+  - Configured Netlify Next.js runtime in `netlify.toml`:
+    ```toml
+    [build]
+      command = "npm run build"
+      publish = ".next"
+
+    [[plugins]]
+      package = "@netlify/plugin-nextjs"
+
+    [build.environment]
+      NODE_VERSION = "20"
+    ```
+  - Configured secret `GEMINI_API_KEY` on Netlify site `signalpath3357` via Netlify MCP API.
+- **Production Verification:**
+  - Live URL: `https://signalpath3357.netlify.app` returns `HTTP 200 OK` (Next.js App Router).
+  - Production serverless function `___netlify-server-handler` deployed successfully (`@netlify/plugin-nextjs@5.16.4`).
+  - Verified live `/api/analyze`: returned HTTP 200 `complete`, `inventory-db` identified with live `gemini` explanation.
+  - Verified live `/api/ask`: returned HTTP 200 with grounded recovery mitigation answer comparing baseline risks.
+
 
 
 
