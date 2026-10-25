@@ -1,0 +1,3 @@
+timestamp,service,level,message,latency_ms,error_rate,cpu_pct
+2026-10-25T10:00:00.000Z,api-gateway,info,Starting health ping,10,0.00,12.0
+2026-10-25T10:00:10.000Z,api-gateway,info,Second ping,11,0.00,12.5

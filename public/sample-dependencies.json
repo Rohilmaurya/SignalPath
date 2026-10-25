@@ -1,0 +1,18 @@
+{
+  "services": [
+    "api-gateway",
+    "checkout-service",
+    "orders-service",
+    "payment-service",
+    "inventory-db",
+    "notification-worker"
+  ],
+  "dependencies": [
+    { "from": "api-gateway", "to": "checkout-service" },
+    { "from": "api-gateway", "to": "orders-service" },
+    { "from": "checkout-service", "to": "orders-service" },
+    { "from": "checkout-service", "to": "payment-service" },
+    { "from": "orders-service", "to": "inventory-db" },
+    { "from": "orders-service", "to": "notification-worker" }
+  ]
+}
