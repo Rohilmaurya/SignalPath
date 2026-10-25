@@ -19,6 +19,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Netlify
+.netlify/
+
 # OS Files
 .DS_Store
 Thumbs.db
