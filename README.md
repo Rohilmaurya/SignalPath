@@ -28,11 +28,11 @@ Built for **Orcathon Hackathon (Track 1: Software & AI)** following the **Master
 4. **Evidence-Linked Explanations & Provenance**:
    - Dual audience modes: **Engineer** (metrics, log IDs, mechanics) and **Executive** (operational consequence, urgency).
    - Server-side **Gemini 3.8 Flash** integration via `@google/genai` with strict JSON schema validation.
-   - **Zero Hallucination Guarantee**: All cited evidence IDs are verified against generated telemetry items; any unrecognized IDs are filtered out.
+   - **Evidence Citation Validation & Hallucination Filtering**: All cited evidence IDs in structured fields and free-form text are verified against generated telemetry items; any unrecognized IDs are filtered out.
    - **Deterministic Fallback**: If no API key is provided or the provider is unreachable, SignalPath provides a verified deterministic explanation and clearly flags the provenance badge (`DETERMINISTIC FALLBACK`).
 
 5. **Multi-Modal Visualizations**:
-   - **3D Incident Observatory**: Interactive Three.js WebGL canvas with dynamic risk halos, directed cascading energy pulses, camera orbit/focus, and projected HTML tactical badges.
+   - **3D Incident Observatory**: Interactive Three.js WebGL 2 canvas with dynamic risk halos, cascading energy pulses (traveling from failing dependency to affected dependents), camera orbit/focus, unified touch/mouse pointer support, pinch-to-zoom, keyboard navigation, and projected HTML tactical badges updated via direct DOM transforms (0 React re-renders per frame).
    - **2D Vector Blast Map**: Scalable, accessible SVG dependency graph.
    - **Tabular Matrix**: High-density accessible list for screen readers and narrow screens.
    - Full `prefers-reduced-motion` and keyboard navigation support.

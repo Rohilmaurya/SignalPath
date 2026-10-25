@@ -75,3 +75,47 @@ Antigravity owns and appends dated entries to this file. Codex reads it during r
   - In-memory processing: Prototype does not persist incidents to a relational database.
   - Simulation semantics: Risk scores (0-100) and recovery estimates are transparent heuristics, not calibrated probabilities.
   - Non-executable actions: Recovery matrix is purely decision support; no automated infrastructure commands are dispatched.
+
+### 2026-10-25 — Comprehensive corrective pass resolving Codex review findings
+
+- **Review Findings Resolved:**
+  1. **Client-side error & failed asset loading (HTTP 400)**: Diagnosed root cause — previous server was holding stale in-memory references to pre-rebuild bundle hashes. Killed stale process, recompiled fresh production build, restarted clean server daemon, and verified every single asset (`/_next/static/css/1a950bb1b69b92a5.css` and all 9 JS chunks) returns HTTP 200 with full payloads.
+  2. **P0 Security (.env.example credential exposure)**: Verified `.env.example` contains only `GEMINI_API_KEY=your_gemini_api_key_here`. Added notice to human operator to revoke/regenerate the prior key immediately. Zero credentials committed or printed.
+  3. **P1 WebGL 2 safe initialization**: Removed the preliminary `canvas.getContext("webgl")` call in `src/components/ObservatoryScene.tsx` which permanently locked the HTML canvas to WebGL 1 and broke Three.js r174's WebGL 2 requirement. Now directly instantiates `new THREE.WebGLRenderer({ canvas, ... })` in a `try...catch`, gracefully catching any initialization failure, disposing resources, and triggering `onWebGLFailure()` fallback.
+  4. **P1 Signal gate & heuristic overstatement**: Updated `src/lib/risk-engine.ts`. Added a signal requirement so datasets with no severe logs and no metric anomalies (or low risk <= 20) return an explicit nominal state without asserting a failure forecast or 10-minute horizon. Dynamic failure horizon calculation now derives from rate of metric acceleration. Replaced deterministic absolutes ("guarantees SLA breaches", "guaranteed 504s") with evidence-grounded copy.
+  5. **P1 Topology-aware recovery scenarios**: Scenarios in `src/lib/risk-engine.ts` now dynamically derive residual risk, recovery horizons, affected services, descriptions, and tradeoffs from the actual predicted service, its callers, its dependents, and baseline system risk rather than hardcoded service names or numbers.
+  6. **P1 Pointer & Keyboard interaction in 3D**: `src/components/ObservatoryScene.tsx` now uses unified Pointer events (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) supporting touch, pen, and mouse, adds two-finger pinch-to-zoom, and implements comprehensive keyboard navigation on the canvas (`ArrowKeys` orbit, `Tab`/`Shift+Tab` cycle nodes, `Enter`/`Space` inspects, `+`/`-` zoom, `R`/`Home` reset).
+  7. **P1 Cascade pulse direction reversed**: Corrected animated curve in `src/components/ObservatoryScene.tsx` from `[toPos, mid, fromPos]`. Magenta energy pulses now visibly travel downstream from the degraded dependency (`to`) to affected dependents (`from`), matching physical failure propagation.
+  8. **P2 React render loop overhead eliminated**: Removed `setScreenCoords` from the `requestAnimationFrame` loop in `src/components/ObservatoryScene.tsx`. Screen-projected HTML badges are now updated directly via DOM transform styles on `badgeDomRefs`, dropping React re-renders during 3D animation from 60 FPS to 0 FPS.
+  9. **P1 Gemini structured schema & free-text citation validation**: In `src/lib/gemini-client.ts`, passed the exact structured JSON Schema `EXPLANATION_JSON_SCHEMA` to both the Interactions API (`json_schema`) and `models.generateContent` (`responseSchema`). Implemented regex validation over free-form explanation text (`sanitizeFreeTextCitations`) to sanitize any unverified citation IDs. Replaced "Zero Hallucination Guarantee" in `README.md` with accurate technical descriptions.
+
+- **Skills and Agents Applied:**
+  - **Master Engineering Workflow**: Coordinated diagnosis, implementation order, and verification gates.
+  - **Software Architecture Planning**: Structured the corrective data flow, signal gate, and dynamic topology-aware scenarios.
+  - **Frontend Design & Frontend Engineer**: Refined typography, badge overlays, and responsive mobile controls.
+  - **Immersive Web Experience Designer & Immersive 3D Motion Designer**: Corrected cascade pulse travel direction, implemented pointer/pinch gestures, and added full keyboard navigation.
+  - **Engineering & Coding**: Implemented direct DOM transform projection, WebGL 2 safe initialization, dynamic horizon logic, and added Test 6 to the automated test suite.
+  - **Security Engineer**: Verified `.env.example` placeholder, prompt input sanitization, and free-form citation filtering.
+  - **UI/UX Judge & Hallmark-Inspired Audit**: Evaluated rendered DOM at `http://127.0.0.1:3000`. Verified all stylesheets and JS chunks load with HTTP 200. Re-verified official `hallmark/SKILL.md` was absent; `hallmark-inspired` audit passed with high marks on intent, hierarchy, restraint, and specificity.
+
+- **Checks and Commands Actually Run:**
+  - `npm run typecheck`: Passed with 0 errors (`tsc --noEmit`, exit code 0).
+  - `npm run build`: Production Next.js build completed in 75s (exit code 0). Generated all static pages and dynamic routes.
+  - `npm start`: Daemon running on `http://localhost:3000` (PID verified, listening).
+  - Asset verification script: All 10 assets (`1a950bb1b69b92a5.css` and 9 JS chunks) returned HTTP 200 OK.
+  - `node test-api.mjs`: All 6 automated tests passed:
+    1. Valid sample replay: HTTP 200, complete, `inventory-db` identified, cascade traced to 3 dependents, dynamic scenario labels generated, all cited evidence IDs verified.
+    2. Missing CSV headers: HTTP 400 `INVALID_TELEMETRY`.
+    3. Malformed JSON: HTTP 400 `INVALID_DEPENDENCIES`.
+    4. Unknown service: HTTP 400 `INVALID_DEPENDENCIES`.
+    5. Insufficient history (<3 records or <30s): HTTP 200 `insufficient_data`, forecast withheld.
+    6. Nominal telemetry (3 records, 30s, no anomalies): HTTP 200 `complete`, failure forecast correctly withheld when telemetry signals are nominal.
+
+- **Setup & Run Instructions:**
+  - Run `npm install`
+  - (Optional) Copy `.env.example` to `.env.local` and add `GEMINI_API_KEY` for live AI explanations. (SignalPath automatically uses deterministic evidence fallback if omitted).
+  - Run `npm run dev` or `npm run build && npm start`
+  - Open `http://localhost:3000` to interact with the observatory.
+
+- **Notice to Operator:**
+  - The previous credential detected in `.env.example` by Codex should be revoked/regenerated in your Google AI Studio / Cloud console immediately. Never commit secrets to version control.

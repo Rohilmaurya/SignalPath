@@ -124,7 +124,31 @@ async function runTests() {
   }
   console.log("✓ Correctly withheld prediction & cascade when temporal history is insufficient!");
 
-  console.log("\n=== ALL 5 API INVARIANT TESTS PASSED SUCCESSFULLY! ===");
+  // Test 6: 3 records over 30s but completely nominal (no anomalies, low risk)
+  console.log("\n[Test 6] 3 records over 30s with nominal telemetry (signal gate test)...");
+  const nominalCsv = `timestamp,service,level,message,latency_ms,error_rate,cpu_pct
+2026-10-25T10:00:00.000Z,api-gateway,info,Ingress health check ok,10,0.00,12.0
+2026-10-25T10:00:20.000Z,orders-service,info,Routine heartbeat,12,0.00,14.0
+2026-10-25T10:00:40.000Z,inventory-db,info,Routine pool check,8,0.00,10.0`;
+
+  const formData6 = new FormData();
+  formData6.append("telemetry", new Blob([nominalCsv], { type: "text/csv" }), "nominal.csv");
+  formData6.append("dependencies", new Blob([sampleJson], { type: "application/json" }), "sample-dependencies.json");
+
+  const res6 = await fetch(baseUrl, { method: "POST", body: formData6 });
+  console.log("HTTP Status:", res6.status);
+  const data6 = await res6.json();
+  console.log("Status field:", data6.status);
+  console.log("Prediction available:", data6.prediction?.available);
+  console.log("Prediction serviceId:", data6.prediction?.serviceId);
+  console.log("Prediction summary:", data6.prediction?.causeSummary);
+
+  if (data6.prediction?.available !== false || data6.prediction?.serviceId !== null) {
+    throw new Error("Test 6 failed: Prediction should not assert a failure culprit when all telemetry is nominal!");
+  }
+  console.log("✓ Correctly withheld failure prediction when telemetry signals are nominal!");
+
+  console.log("\n=== ALL 6 API INVARIANT TESTS PASSED SUCCESSFULLY! ===");
 }
 
 runTests().catch(err => {
