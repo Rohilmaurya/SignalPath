@@ -400,6 +400,9 @@ Antigravity owns and appends dated entries to this file. Codex reads it during r
     6. Nominal telemetry: HTTP 200 `complete`, failure prediction withheld.
     7. Grounded Q&A: HTTP 200 `answered`, live citations verified.
   - Recovery Q&A check: Tested "Why is the recommended recovery ranked first?" against local daemon (`http://localhost:3000/api/ask`), verifying accurate comparison between the recommended scenario (residual risk 23) and the unmitigated "Do Nothing" baseline (residual risk 95).
+  - Production smoke test (task-1711 against `https://signalpath3357.netlify.app`):
+    - Live `/api/analyze` status: HTTP 200 `complete` (Prediction: `inventory-db`, Risk: 100, Cascade: `orders-service`, `api-gateway`, `checkout-service`).
+    - Live `/api/ask` status: HTTP 200 with live Gemini answer comparing recommended scenario (`isolate-reroute`, 11m horizon, 23% risk) with baseline `do-nothing` (60m, 95% risk).
   - `curl.exe -sI http://localhost:3000`: Verified HTTP 200 OK and presence of all security headers.
   - `git diff review.md`: Verified `review.md` remains completely untouched (Codex ownership intact).
 
