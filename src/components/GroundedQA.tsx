@@ -128,7 +128,7 @@ export const GroundedQA: React.FC<GroundedQAProps> = ({
   };
 
   return (
-    <section className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+    <section className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 craft-card">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E4E4E7] gap-3">
         <div>
@@ -161,7 +161,7 @@ export const GroundedQA: React.FC<GroundedQAProps> = ({
             key={idx}
             onClick={() => handleAsk(p)}
             disabled={isLoading}
-            className="text-xs bg-[#F4F4F5] hover:bg-[#E4E4E7] text-[#18181B] px-3.5 py-1.5 rounded-full border border-[#E4E4E7] transition-all disabled:opacity-50"
+            className="text-xs bg-[#F4F4F5] hover:bg-[#E4E4E7] text-[#18181B] px-3.5 py-1.5 rounded-full border border-[#E4E4E7] transition-transform duration-150 active:scale-[0.975] disabled:opacity-50 min-h-[36px]"
           >
             {p}
           </button>
@@ -200,7 +200,7 @@ export const GroundedQA: React.FC<GroundedQAProps> = ({
                   <button
                     key={eid}
                     onClick={() => onSelectEvidence(eid)}
-                    className="inline-flex items-center gap-1 text-[11px] font-mono bg-white hover:bg-[#F4F4F5] text-[#18181B] px-2.5 py-0.5 rounded-full border border-[#D4D4D8] transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1 text-[11px] font-mono bg-white hover:bg-[#F4F4F5] text-[#18181B] px-2.5 py-0.5 rounded-full border border-[#D4D4D8] transition-transform duration-150 active:scale-[0.975] shadow-sm"
                   >
                     <span>{eid}</span>
                     <ExternalLink className="h-2.5 w-2.5 text-[#71717A]" />
@@ -238,42 +238,42 @@ export const GroundedQA: React.FC<GroundedQAProps> = ({
         {isLoading && (
           <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs text-[#71717A] flex items-center gap-2.5 font-mono">
             <span className="h-4 w-4 border-2 border-[#18181B] border-t-transparent rounded-full animate-spin" />
-            <span>Consulting evidence ledger and generating grounded response...</span>
+            <span>Consulting Gemini 3.8 Flash with grounded evidence ledger...</span>
           </div>
         )}
       </div>
 
-      {/* Query Input Bar */}
+      {/* Input bar */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleAsk();
         }}
-        className="flex items-center gap-2 pt-1"
+        className="flex items-center gap-2 pt-2 border-t border-[#E4E4E7]"
       >
         <input
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask a question grounded in this incident (e.g., 'Why is the recommended recovery ranked first?')"
-          maxLength={500}
+          placeholder="Ask a question about this incident's evidence or recovery scenarios..."
           disabled={isLoading}
-          className="flex-1 bg-[#FAFAFA] focus:bg-white border border-[#E4E4E7] focus:border-[#18181B] rounded-full px-5 py-3 text-xs text-[#18181B] placeholder:text-[#A1A1AA] focus:outline-none transition-colors font-sans shadow-inner"
+          maxLength={500}
+          className="flex-1 bg-[#FAFAFA] border border-[#E4E4E7] rounded-full px-4 py-2.5 text-xs text-[#18181B] placeholder-[#A1A1AA] focus:outline-none focus:ring-2 focus:ring-[#18181B] focus:border-transparent transition-colors duration-150 min-h-[42px]"
         />
         <button
           type="submit"
-          disabled={isLoading || !question.trim()}
-          className="inline-flex items-center gap-1.5 bg-[#18181B] text-white font-medium px-6 py-3 rounded-full text-xs hover:bg-black transition-all shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          disabled={!question.trim() || isLoading}
+          className="h-10 px-5 rounded-full bg-[#18181B] text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-transform duration-150 flex items-center gap-1.5 text-xs font-medium active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B]"
         >
           <span>Ask</span>
           <Send className="h-3.5 w-3.5" />
         </button>
       </form>
 
-      {/* Operational Disclaimer */}
-      <div className="text-[11px] font-mono text-[#A1A1AA] flex items-center gap-1.5 pt-1">
-        <ShieldAlert className="h-3.5 w-3.5 text-[#71717A] shrink-0" />
-        <span>Advisory simulation only. Assistant will never execute commands or alter live infrastructure.</span>
+      {/* Safety Notice */}
+      <div className="text-[11px] font-mono text-[#71717A] flex items-center gap-1.5 justify-center pt-1">
+        <ShieldAlert className="h-3 w-3 text-[#18181B]" />
+        <span>Grounded in active telemetry only. SignalPath does not execute live infrastructure changes.</span>
       </div>
     </section>
   );

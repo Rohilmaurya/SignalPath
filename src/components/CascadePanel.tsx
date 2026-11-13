@@ -19,12 +19,12 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
 
   if (!cascade.available || cascade.paths.length === 0) {
     return (
-      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm">
-        <h3 className="text-sm font-semibold text-[#18181B] mb-2 flex items-center gap-2">
+      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm craft-card">
+        <h3 className="text-sm font-semibold text-[#18181B] mb-2 flex items-center gap-2 font-sans">
           <GitFork className="h-4 w-4 text-[#7C3AED]" />
           <span>Downstream Impact & Blast Radius</span>
         </h3>
-        <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs text-[#52525B] flex items-center gap-2">
+        <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs text-[#52525B] flex items-center gap-2 font-sans">
           <ShieldCheck className="h-4 w-4 text-[#059669] shrink-0" />
           <span>No cascading downstream dependencies detected. Fault domain is isolated.</span>
         </div>
@@ -35,12 +35,12 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
   const displayedPaths = showAllPaths ? cascade.paths : cascade.paths.slice(0, 2);
 
   return (
-    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col justify-between">
+    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col justify-between craft-card">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-4 mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2 font-sans">
               <GitFork className="h-4 w-4 text-[#7C3AED]" />
               <span>Downstream Impact & Blast Radius</span>
             </h3>
@@ -59,7 +59,7 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
           {displayedPaths.map((path, idx) => (
             <div
               key={idx}
-              className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs transition-all hover:border-purple-300"
+              className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs transition-colors duration-150 hover:border-purple-300 craft-card"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -67,7 +67,7 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
                     <React.Fragment key={sId}>
                       <button
                         onClick={() => onFocusService(sId)}
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-medium border transition-colors ${
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-medium border transition-transform duration-150 active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                           sId === predictedServiceId
                             ? "bg-rose-50 border-rose-200 text-rose-700 font-semibold hover:bg-rose-100"
                             : "bg-white border-[#E4E4E7] text-[#18181B] hover:border-zinc-400"
@@ -88,7 +88,7 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
                 </span>
               </div>
 
-              <p className="text-xs text-[#52525B] leading-relaxed">
+              <p className="text-xs text-[#52525B] leading-relaxed font-sans">
                 {path.reason}
               </p>
             </div>
@@ -98,7 +98,7 @@ export const CascadePanel: React.FC<CascadePanelProps> = ({
         {cascade.paths.length > 2 && (
           <button
             onClick={() => setShowAllPaths(!showAllPaths)}
-            className="mt-3 text-xs text-[#18181B] hover:text-[#FC4778] flex items-center gap-1 font-medium"
+            className="mt-3 text-xs text-[#18181B] hover:text-[#FC4778] flex items-center gap-1 font-medium transition-colors duration-150"
           >
             <span>{showAllPaths ? "Show primary paths only" : `View all ${cascade.paths.length} cascade paths`}</span>
             {showAllPaths ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}

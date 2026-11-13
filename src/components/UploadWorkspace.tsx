@@ -37,31 +37,35 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
   const [isDraggingTelemetry, setIsDraggingTelemetry] = useState(false);
   const [isDraggingDeps, setIsDraggingDeps] = useState(false);
   const [isLoadingDemo, setIsLoadingDemo] = useState(false);
+  const [localWarning, setLocalWarning] = useState<string | null>(null);
 
   const telemetryInputRef = useRef<HTMLInputElement>(null);
   const depsInputRef = useRef<HTMLInputElement>(null);
 
   const handleTelemetrySelect = (file: File) => {
     onClearError();
-    if (file.name.endsWith(".csv")) {
+    setLocalWarning(null);
+    if (file.name.toLowerCase().endsWith(".csv")) {
       setTelemetryFile(file);
     } else {
-      alert("Please upload a .csv file for telemetry.");
+      setLocalWarning("Invalid file type: Please select a valid .csv format file for telemetry.");
     }
   };
 
   const handleDepsSelect = (file: File) => {
     onClearError();
-    if (file.name.endsWith(".json")) {
+    setLocalWarning(null);
+    if (file.name.toLowerCase().endsWith(".json")) {
       setDependenciesFile(file);
     } else {
-      alert("Please upload a .json file for dependencies.");
+      setLocalWarning("Invalid file type: Please select a valid .json format file for dependencies.");
     }
   };
 
   const handleLoadDemoTemplate = async () => {
     setIsLoadingDemo(true);
     onClearError();
+    setLocalWarning(null);
     try {
       const [csvRes, jsonRes] = await Promise.all([
         fetch("/sample-telemetry.csv"),
@@ -80,6 +84,7 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
       }
     } catch (err) {
       console.error("Failed to load demo template:", err);
+      setLocalWarning("Failed to load demo template files. Please check network connectivity.");
     } finally {
       setIsLoadingDemo(false);
     }
@@ -100,8 +105,8 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
   }
 
   return (
-    <section id="upload" className="max-w-4xl mx-auto w-full py-16 px-4 sm:px-6">
-      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-8 sm:p-12 shadow-sm space-y-8">
+    <section id="upload" className="max-w-4xl mx-auto w-full py-12 sm:py-16 px-4 sm:px-6">
+      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-8 sm:p-12 shadow-sm space-y-8 craft-card">
         {/* Header */}
         <div className="space-y-3 text-center max-w-2xl mx-auto border-b border-[#E4E4E7] pb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] text-[#18181B] text-[11px] font-mono tracking-widest uppercase shadow-sm">
@@ -116,17 +121,35 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
           </p>
         </div>
 
+        {/* Local Format Warning Alert (Non-blocking, accessible) */}
+        {localWarning && (
+          <div className="p-4 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-[#D97706] shrink-0" />
+              <span>{localWarning}</span>
+            </div>
+            <button
+              onClick={() => setLocalWarning(null)}
+              className="text-[#92400E] hover:text-[#78350F] p-1 rounded-full"
+              aria-label="Dismiss warning"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Validation Error Alert */}
         {validationError && (
           <div className="p-5 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] text-xs space-y-2">
             <div className="flex items-center justify-between font-semibold text-[#DC2626]">
               <span className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>Upload Validation Error: {validationError.message}</span>
               </span>
               <button
                 onClick={onClearError}
-                className="text-[#DC2626] hover:text-[#991B1B] transition-colors"
+                className="text-[#DC2626] hover:text-[#991B1B] p-1 rounded-full transition-colors"
+                aria-label="Dismiss error"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -169,7 +192,16 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
                   if (e.dataTransfer.files[0]) handleTelemetrySelect(e.dataTransfer.files[0]);
                 }}
                 onClick={() => telemetryInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    telemetryInputRef.current?.click();
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Upload Telemetry CSV File"
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                   isDraggingTelemetry
                     ? "border-[#18181B] bg-[#F4F4F5]"
                     : telemetryFile
@@ -204,7 +236,7 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
                         e.stopPropagation();
                         setTelemetryFile(null);
                       }}
-                      className="text-[11px] text-[#DC2626] hover:underline font-mono"
+                      className="text-[11px] text-[#DC2626] hover:underline font-mono py-1 px-2"
                     >
                       Remove file
                     </button>
@@ -247,7 +279,16 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
                   if (e.dataTransfer.files[0]) handleDepsSelect(e.dataTransfer.files[0]);
                 }}
                 onClick={() => depsInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    depsInputRef.current?.click();
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Upload Dependencies JSON File"
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                   isDraggingDeps
                     ? "border-[#18181B] bg-[#F4F4F5]"
                     : dependenciesFile
@@ -282,7 +323,7 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
                         e.stopPropagation();
                         setDependenciesFile(null);
                       }}
-                      className="text-[11px] text-[#DC2626] hover:underline font-mono"
+                      className="text-[11px] text-[#DC2626] hover:underline font-mono py-1 px-2"
                     >
                       Remove file
                     </button>
@@ -311,9 +352,9 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
                 type="button"
                 onClick={handleLoadDemoTemplate}
                 disabled={isLoadingDemo || isAnalyzing}
-                className="text-xs font-mono text-[#52525B] hover:text-[#18181B] underline underline-offset-4 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                className="text-xs font-mono text-[#52525B] hover:text-[#18181B] underline underline-offset-4 flex items-center gap-1.5 transition-colors duration-150 disabled:opacity-50 min-h-[44px] sm:min-h-0"
               >
-                <Sparkles className="h-3 w-3 text-[#FC4778]" />
+                <Sparkles className="h-3.5 w-3.5 text-[#FC4778]" />
                 <span>{isLoadingDemo ? "Loading demo files..." : "Load demo template files"}</span>
               </button>
               <span className="text-[11px] text-[#A1A1AA] font-mono">(Opt-in template only)</span>
@@ -322,7 +363,7 @@ export const UploadWorkspace: React.FC<UploadWorkspaceProps> = ({
             <button
               type="submit"
               disabled={!telemetryFile || !dependenciesFile || isAnalyzing}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-medium text-sm bg-[#18181B] text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-medium text-sm bg-[#18181B] text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-transform duration-150 shadow-sm hover:shadow-md active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2 min-h-[44px]"
             >
               <span>Execute Causal Analysis</span>
               <ArrowRight className="h-4 w-4" />

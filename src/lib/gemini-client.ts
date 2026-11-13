@@ -241,16 +241,16 @@ export async function answerGroundedQuestion(params: {
   context: import("./types").AskContext;
 }): Promise<import("./types").AskResponse> {
   const { analysisId, question, context } = params;
-  const availableEvidenceMap = new Map(context.evidence.map((e) => [e.id, e]));
-  const validEvidenceIds = new Set(context.evidence.map((e) => e.id));
+  const availableEvidenceMap = new Map((context.evidence || []).map((e) => [e.id, e]));
+  const validEvidenceIds = new Set((context.evidence || []).map((e) => e.id));
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   // Fallback deterministic responder
   const buildDeterministicAnswer = (): import("./types").AskResponse => {
     const qLower = question.toLowerCase();
-    const predService = context.prediction.serviceId || "Unknown Service";
-    const predEvidence = context.prediction.evidenceIds
+    const predService = context.prediction?.serviceId || "Unknown Service";
+    const predEvidence = (context.prediction?.evidenceIds || [])
       .filter((id) => validEvidenceIds.has(id))
       .slice(0, 3);
 
@@ -269,8 +269,9 @@ export async function answerGroundedQuestion(params: {
       qLower.includes("baseline") ||
       qLower.includes("do-nothing")
     ) {
-      const topScenario = context.scenarios.find((s) => s.id !== "do-nothing") || context.scenarios[0];
-      const baseline = context.scenarios.find((s) => s.id === "do-nothing");
+      const scenarios = context.scenarios || [];
+      const topScenario = scenarios.find((s) => s.id !== "do-nothing") || scenarios[0];
+      const baseline = scenarios.find((s) => s.id === "do-nothing");
       if (topScenario && baseline) {
         answer = `Simulated scenario '${topScenario.label || topScenario.id}' is ranked #1 because it projects an estimated residual system risk of ${topScenario.remainingSystemRisk}/100 with recovery in ~${topScenario.recoveryMinutes ?? 8}m, compared to the unmitigated 'Do Nothing' baseline of ${baseline.remainingSystemRisk}/100 where cascade failure spreads unchecked. Tradeoffs: ${topScenario.tradeoffs || "Targeted service traffic shedding"}. Note: All recovery options are analytical heuristic simulations; no infrastructure commands are executed.`;
         suggestions.push("Review runbook prerequisites before executing manual failover procedures.");
@@ -280,8 +281,9 @@ export async function answerGroundedQuestion(params: {
         answer = "No recovery scenarios could be evaluated due to insufficient data coverage.";
       }
     } else if (qLower.includes("cascade") || qLower.includes("downstream") || qLower.includes("impact") || qLower.includes("blast")) {
-      if (context.cascadePaths.length > 0) {
-        const primary = context.cascadePaths[0];
+      const cascadePaths = context.cascadePaths || [];
+      if (cascadePaths.length > 0) {
+        const primary = cascadePaths[0];
         answer = `If ${predService} degrades, failure propagates to dependent callers: ${primary.serviceIds.join(" → ")} (${primary.reason || "upstream caller dependency"}).`;
         suggestions.push("Verify whether upstream callers have active circuit breakers configured.");
       } else {
@@ -294,11 +296,11 @@ export async function answerGroundedQuestion(params: {
           return item ? `${id} (${item.label}: ${item.value})` : id;
         })
         .join("; ");
-      answer = `The highest-risk component is ${predService} (heuristic risk ${context.prediction.riskScore}/100, ${context.prediction.confidence} confidence). Primary observed signals include: ${evidenceDetails || "anomalous drift in metrics"}.`;
+      answer = `The highest-risk component is ${predService} (heuristic risk ${context.prediction?.riskScore || 0}/100, ${context.prediction?.confidence || "low"} confidence). Primary observed signals include: ${evidenceDetails || "anomalous drift in metrics"}.`;
       evidenceIds = predEvidence;
       suggestions.push(`Inspect active thread pool and resource utilization on ${predService}.`);
     } else {
-      answer = `Analysis summary for ${predService}: ${context.prediction.causeSummary || "Observed telemetry indicates localized service degradation."} (Risk: ${context.prediction.riskScore}/100).`;
+      answer = `Analysis summary for ${predService}: ${context.prediction?.causeSummary || "Observed telemetry indicates localized service degradation."} (Risk: ${context.prediction?.riskScore || 0}/100).`;
       evidenceIds = predEvidence;
       suggestions.push("Cross-reference telemetry time window with recent deployments.");
     }

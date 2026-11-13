@@ -364,6 +364,46 @@ Antigravity owns and appends dated entries to this file. Codex reads it during r
   - Verified live `/api/analyze`: returned HTTP 200 `complete`, `inventory-db` identified with live `gemini` explanation.
   - Verified live `/api/ask`: returned HTTP 200 with grounded recovery mitigation answer comparing baseline risks.
 
+### 2026-11-13 — Comprehensive Site-Wide Engineering & Craft Elevation Pass
+
+- **Skills and Frameworks Engaged:**
+  - `master-engineering-workflow`: Orchestrated multi-track delivery spanning motion, design engineering, anti-slop visual taste, interactive figure creation, defensive API hardening, and verification.
+  - `cinematic-gsap-lenis-motion-system` & `gsap-*` (`gsap-core`, `gsap-react`, `gsap-scrolltrigger`, `gsap-timeline`, `gsap-performance`, `gsap-utils`, `gsap-plugins`, `gsap-frameworks`):
+    - Implemented `SmoothScrollProvider.tsx` pairing Lenis momentum scrolling (`lerp: 0.09`) directly with the GSAP ticker (`gsap.ticker.add((time) => lenis.raf(time * 1000))`) and `gsap.ticker.lagSmoothing(0)`.
+    - Integrated `@gsap/react` `useGSAP` hook in `StorySection.tsx` for zero-leak lifecycle cleanup.
+    - Added staggered text reveals (`y: 24`, `opacity: 0`, `stagger: 0.08`, `ease: "power3.out"`).
+    - Respects `prefers-reduced-motion: reduce` completely (disabling smooth scrolling and ticker sync).
+  - `emil-design-eng` & `improve-animations`:
+    - Eliminated unprincipled `transition: all` across components; specified exact CSS properties (`transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease-out, border-color 150ms ease-out`).
+    - Added tactile `:active` state press feedback across all buttons, chips, and interactive cards (`active:scale-[0.975]`).
+    - Fixed modal dialog animation in `EvidenceInspector.tsx` to center-scale from `0.97` to `1.0` with opacity, avoiding jarring jumps.
+    - Replaced blocking `alert()` in `UploadWorkspace.tsx` with accessible, non-blocking inline warning alerts.
+  - `hairline-create` & `hairline-adopt`:
+    - Created, built, and statically validated standalone Hairline artifact `hairline-signalpath.html` and source figure `signalpath-figure.js` adhering to all 10 Hairline rules (single stroke, isometric projection, honest back-to-front construction, rest pose, single highlight).
+    - Built and integrated native responsive `HairlineObservatory.tsx` into the landing story section, enabling interactive pointer-driven isometric tilting and telemetry node status inspection.
+  - `design-taste-frontend`, `frontend-design`, `ui-ux-pro-max`, & `impeccable`:
+    - Enforced the anti-slop standard: refined font hierarchy, high contrast (`#18181B` typography on `#FAFAFA`), 1px hairline zinc borders, tactile card lifts (`.craft-card`), and 44x44px minimum mobile touch targets.
+    - Video playback optimization: wired `IntersectionObserver` to pause the background architectural video when scrolled offscreen.
+  - `security-audit` & `ponytail`:
+    - Added HTTP security headers in `next.config.ts`: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy`.
+    - Fixed defensive guarding in `src/lib/gemini-client.ts` and `src/app/api/ask/route.ts` against undefined `prediction.evidenceIds` or sparse context, eliminating potential `TypeError` crashes.
+- **Verification & Checks Actually Run:**
+  - `npm run typecheck`: Passed with 0 errors (`tsc --noEmit`, exit code 0).
+  - `npm run build`: Production Next.js 15 build compiled cleanly in 2.6s (exit code 0).
+  - `node "C:\Users\maury\.gemini\config\skills\hairline-create\validate.mjs" hairline-signalpath.html`: Statically validated and passed with code 0 (`ok hairline-signalpath.html: kernel and bench intact, and the figure passes the static checks`).
+  - `node test-api.mjs`: All 7 core API invariant tests passed:
+    1. Valid upload: HTTP 200, status `complete`, `inventory-db` identified, live `gemini` / deterministic fallback, citations verified.
+    2. Missing CSV headers: HTTP 400 `INVALID_TELEMETRY`.
+    3. Malformed JSON: HTTP 400 `INVALID_DEPENDENCIES`.
+    4. Unknown service: HTTP 400 `INVALID_DEPENDENCIES`.
+    5. Insufficient temporal history (<3 records or <30s): HTTP 200 `insufficient_data`, forecast withheld.
+    6. Nominal telemetry: HTTP 200 `complete`, failure prediction withheld.
+    7. Grounded Q&A: HTTP 200 `answered`, live citations verified.
+  - Recovery Q&A check: Tested "Why is the recommended recovery ranked first?" against local daemon (`http://localhost:3000/api/ask`), verifying accurate comparison between the recommended scenario (residual risk 23) and the unmitigated "Do Nothing" baseline (residual risk 95).
+  - `curl.exe -sI http://localhost:3000`: Verified HTTP 200 OK and presence of all security headers.
+  - `git diff review.md`: Verified `review.md` remains completely untouched (Codex ownership intact).
+
+
 
 
 

@@ -35,14 +35,14 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
 
   if (!prediction.available) {
     return (
-      <div className="bg-amber-50/50 border border-amber-200 rounded-3xl p-6 text-xs text-amber-800 shadow-sm">
-        <h3 className="font-semibold text-sm text-amber-900 mb-2 flex items-center gap-1.5">
+      <div className="bg-amber-50/50 border border-amber-200 rounded-3xl p-6 text-xs text-amber-800 shadow-sm craft-card">
+        <h3 className="font-semibold text-sm text-amber-900 mb-2 flex items-center gap-1.5 font-sans">
           <Info className="h-4 w-4 text-amber-600" />
-          Predictive Analysis Withheld
+          <span>Predictive Analysis Withheld</span>
         </h3>
         <p className="leading-relaxed text-[#52525B]">
           Telemetry data coverage is insufficient to compute statistical drift or extrapolate failure horizons.
-          {prediction.explanations[audienceMode]}
+          {" "}{prediction.explanations[audienceMode]}
         </p>
       </div>
     );
@@ -53,14 +53,14 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
   const displayedSymptoms = showAllSymptoms ? prediction.symptoms : prediction.symptoms.slice(0, 2);
 
   return (
-    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col justify-between">
+    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col justify-between craft-card">
       <div>
         {/* Header with Contextual Audience Switcher (Engineer vs Executive) */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E4E4E7] pb-4 mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2 font-sans">
               <span>Root Cause & Hypothesis</span>
-              <span className="text-xs text-[#71717A] font-normal">
+              <span className="text-xs text-[#71717A] font-normal font-mono">
                 (target: <strong className="text-[#DC2626]">{prediction.serviceId}</strong>)
               </span>
             </h3>
@@ -79,7 +79,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
           <div className="flex items-center rounded-full bg-[#F4F4F5] p-1 border border-[#E4E4E7]" role="group" aria-label="Audience explanation mode">
             <button
               onClick={() => setAudienceMode("engineer")}
-              className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 transition-transform duration-150 active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                 audienceMode === "engineer"
                   ? "bg-[#18181B] text-white font-medium shadow-sm"
                   : "text-[#52525B] hover:text-[#18181B]"
@@ -91,7 +91,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
             </button>
             <button
               onClick={() => setAudienceMode("executive")}
-              className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 transition-transform duration-150 active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                 audienceMode === "executive"
                   ? "bg-[#18181B] text-white font-medium shadow-sm"
                   : "text-[#52525B] hover:text-[#18181B]"
@@ -106,7 +106,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
 
         {/* Narrative Explanation Block */}
         <div className="mb-4">
-          <p className="text-xs text-[#18181B] leading-relaxed bg-[#FAFAFA] border border-[#E4E4E7] p-4 rounded-2xl">
+          <p className="text-xs text-[#18181B] leading-relaxed bg-[#FAFAFA] border border-[#E4E4E7] p-4 rounded-2xl font-sans">
             {activeExplanation}
           </p>
         </div>
@@ -118,7 +118,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
             {prediction.symptoms.length > 2 && (
               <button
                 onClick={() => setShowAllSymptoms(!showAllSymptoms)}
-                className="text-[11px] text-[#18181B] hover:text-[#FC4778] font-medium flex items-center gap-0.5"
+                className="text-[11px] text-[#18181B] hover:text-[#FC4778] font-medium flex items-center gap-0.5 transition-colors duration-150"
               >
                 <span>{showAllSymptoms ? "Show fewer" : `All ${prediction.symptoms.length}`}</span>
                 {showAllSymptoms ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -130,7 +130,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
             {displayedSymptoms.map((symptom, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                className="p-3 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 craft-card"
               >
                 <div className="flex items-center gap-2">
                   <Tag className="h-3.5 w-3.5 text-[#18181B] shrink-0" />
@@ -144,7 +144,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
                       <button
                         key={eid}
                         onClick={() => onSelectEvidence(eid)}
-                        className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
+                        className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full border flex items-center gap-1 transition-transform duration-150 active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] ${
                           isMetric
                             ? "bg-sky-50 border-sky-200 text-sky-800 hover:bg-sky-100"
                             : "bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100"
@@ -165,11 +165,11 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="mt-4 pt-3 border-t border-[#E4E4E7] text-[11px] text-[#71717A] flex items-center justify-between">
+      <div className="mt-4 pt-3 border-t border-[#E4E4E7] text-[11px] text-[#71717A] flex items-center justify-between font-mono">
         <span>Grounded in telemetry observations</span>
         <button
           onClick={onOpenLedger}
-          className="text-[#18181B] hover:text-[#FC4778] font-medium flex items-center gap-1"
+          className="text-[#18181B] hover:text-[#FC4778] font-medium flex items-center gap-1 transition-colors duration-150"
         >
           View all {evidenceList.length} evidence items
         </button>

@@ -1,170 +1,186 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import { 
   Activity, 
   ArrowDown, 
   ArrowRight, 
   Cpu, 
-  Database, 
   GitFork, 
-  Layers, 
-  ShieldCheck, 
   Sparkles, 
-  Zap,
-  Radio,
-  Server,
-  TrendingUp,
-  AlertOctagon,
-  Clock,
-  ShieldAlert,
-  SlidersHorizontal
+  Radio, 
+  TrendingUp, 
+  AlertOctagon, 
+  SlidersHorizontal,
+  Layers,
+  ShieldCheck
 } from "lucide-react";
+import { HairlineObservatory } from "@/components/HairlineObservatory";
 
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
 export const StorySection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // GSAP ScrollTrigger Animations for editorial section reveals
+  // IntersectionObserver to pause the background story video when scrolled offscreen
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion || !containerRef.current) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    const sections = containerRef.current.querySelectorAll(".story-chapter");
-    const triggers: ScrollTrigger[] = [];
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.15 }
+    );
 
-    sections.forEach((sec) => {
-      const anim = gsap.fromTo(
-        sec,
-        { opacity: 0, y: 35 },
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  // Cinematic GSAP ScrollTrigger sequence using useGSAP for zero-leak lifecycle cleanup
+  useGSAP(
+    () => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReducedMotion || !containerRef.current) return;
+
+      // Staggered text reveals on Hero
+      gsap.fromTo(
+        ".hero-reveal",
+        { opacity: 0, y: 24 },
         {
           opacity: 1,
           y: 0,
           duration: 0.85,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sec,
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
+          stagger: 0.08,
+          ease: "power3.out",
+          delay: 0.1,
         }
       );
-      if (anim.scrollTrigger) triggers.push(anim.scrollTrigger);
-    });
 
-    return () => {
-      triggers.forEach((t) => t.kill());
-    };
-  }, []);
+      // Section chapter reveals
+      const sections = containerRef.current.querySelectorAll(".story-chapter");
+      sections.forEach((sec) => {
+        gsap.fromTo(
+          sec,
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: sec,
+              start: "top 82%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+    },
+    { scope: containerRef }
+  );
 
   return (
-    <div ref={containerRef} className="space-y-32 py-16">
+    <div ref={containerRef} className="space-y-32 py-12 sm:py-16">
       {/* CHAPTER 1: Hero Section (Incredibles.dev oversized typography & calm restraint) */}
       <section className="relative min-h-[85vh] flex flex-col justify-center items-center text-center px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
         {/* Eyebrow Pill */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#E4E4E7] text-[#18181B] text-[11px] font-mono tracking-widest uppercase shadow-sm">
+        <div className="hero-reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#E4E4E7] text-[#18181B] text-[11px] font-mono tracking-widest uppercase shadow-sm">
           <span className="h-2 w-2 rounded-full bg-[#FC4778] animate-pulse" />
           <span>Distributed Systems Causal Observatory</span>
         </div>
 
         {/* Oversized Centered Headline */}
-        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-[#18181B] leading-[1.04] max-w-4xl mx-auto font-sans">
+        <h1 className="hero-reveal text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-[#18181B] leading-[1.04] max-w-4xl mx-auto font-sans">
           See the cascade <br />
           <span className="text-[#71717A] font-light">before callers collapse.</span>
         </h1>
 
         {/* Authoritative Domain Lead */}
-        <p className="text-base sm:text-lg text-[#52525B] max-w-2xl mx-auto font-normal leading-relaxed">
+        <p className="hero-reveal text-base sm:text-lg text-[#52525B] max-w-2xl mx-auto font-normal leading-relaxed">
           Modern cloud architectures fail in silent, non-linear domino chains. SignalPath correlates multi-dimensional telemetry drift against directed service dependency graphs to isolate the root culprit, predict downstream blast radiuses, and simulate recovery tradeoffs before the first P0 alert fires.
         </p>
 
         {/* High-Contrast Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="hero-reveal flex flex-wrap items-center justify-center gap-4 pt-2">
           <a
             href="#upload"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#18181B] text-white font-medium text-sm hover:bg-black transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#18181B] text-white font-medium text-sm hover:bg-black transition-transform duration-150 shadow-sm hover:shadow-md active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2"
           >
             <span>Upload Telemetry & Analyze</span>
             <ArrowRight className="h-4 w-4" />
           </a>
 
           <a
-            href="#signals"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white text-[#18181B] border border-[#E4E4E7] hover:bg-[#F4F4F5] text-sm font-medium transition-all shadow-sm"
+            href="#hairline-demo"
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white text-[#18181B] border border-[#E4E4E7] hover:bg-[#F4F4F5] text-sm font-medium transition-colors duration-150 shadow-sm active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2"
           >
-            <span>Read Causal Breakdown</span>
+            <span>Inspect Causal DAG</span>
             <ArrowDown className="h-4 w-4 text-[#71717A]" />
           </a>
         </div>
 
-        {/* Clean Architectural Causal Flow Card (Replaces the clunky 3D canvas) */}
-        <div className="w-full mt-10 rounded-3xl bg-white border border-[#E4E4E7] p-6 sm:p-8 shadow-sm text-left">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E4E4E7] gap-3">
-            <div>
-              <div className="text-[11px] font-mono uppercase tracking-widest text-[#71717A] mb-1 flex items-center gap-2">
-                <Radio className="h-3.5 w-3.5 text-[#FC4778]" />
-                <span>Observatory Causal Pipeline</span>
-              </div>
-              <h3 className="text-lg font-bold text-[#18181B] font-sans">
-                Predictive Fault Domain Isolation
-              </h3>
+        {/* Bespoke Interactive Isometric Hairline Figure (hairline-create & hairline-adopt) */}
+        <div id="hairline-demo" className="w-full pt-4">
+          <HairlineObservatory />
+        </div>
+
+        {/* Causal Pipeline Strategic Pillars */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 text-left pt-4">
+          <div className="space-y-2 p-6 rounded-3xl bg-white border border-[#E4E4E7] craft-card">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
+              <Activity className="h-3.5 w-3.5 text-[#FC4778]" />
+              <span>01. Signal Drift</span>
             </div>
-            <span className="text-xs font-mono text-[#059669] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 font-semibold self-start sm:self-center">
-              Active Analytical Engine
-            </span>
+            <h4 className="text-sm font-semibold text-[#18181B]">Multi-Signal Inflection</h4>
+            <p className="text-xs text-[#52525B] leading-relaxed">
+              Correlates tail latency divergence (p95/p99 vs p50), TCP socket starvation, and severe log density clustering across raw time series.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-            <div className="space-y-2 p-5 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7]">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
-                <Activity className="h-3.5 w-3.5 text-[#FC4778]" />
-                <span>01. Signal Drift</span>
-              </div>
-              <h4 className="text-sm font-semibold text-[#18181B]">Multi-Signal Inflection</h4>
-              <p className="text-xs text-[#52525B] leading-relaxed">
-                Correlates p95/p99 latency acceleration, database connection starvation, and error spikes across raw time series.
-              </p>
+          <div className="space-y-2 p-6 rounded-3xl bg-white border border-[#E4E4E7] craft-card">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
+              <GitFork className="h-3.5 w-3.5 text-[#7C3AED]" />
+              <span>02. DAG Blast Radius</span>
             </div>
+            <h4 className="text-sm font-semibold text-[#18181B]">Directed Propagation</h4>
+            <p className="text-xs text-[#52525B] leading-relaxed">
+              Traverses cycle-safe service dependencies (<code className="text-[#18181B] font-mono text-[11px] bg-zinc-100 px-1 py-0.5 rounded">from → to</code>) to trace exactly which upstream callers will time out first.
+            </p>
+          </div>
 
-            <div className="space-y-2 p-5 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7]">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
-                <GitFork className="h-3.5 w-3.5 text-[#7C3AED]" />
-                <span>02. DAG Blast Radius</span>
-              </div>
-              <h4 className="text-sm font-semibold text-[#18181B]">Directed Propagation</h4>
-              <p className="text-xs text-[#52525B] leading-relaxed">
-                Traverses cycle-safe service dependencies (<code className="text-[#18181B] font-mono text-[11px]">from → to</code>) to map which upstream callers will time out first.
-              </p>
+          <div className="space-y-2 p-6 rounded-3xl bg-white border border-[#E4E4E7] craft-card">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#059669]" />
+              <span>03. Mitigation Sandbox</span>
             </div>
-
-            <div className="space-y-2 p-5 rounded-2xl bg-[#FAFAFA] border border-[#E4E4E7]">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#71717A]">
-                <SlidersHorizontal className="h-3.5 w-3.5 text-[#059669]" />
-                <span>03. Mitigation Sandbox</span>
-              </div>
-              <h4 className="text-sm font-semibold text-[#18181B]">Simulated Recovery</h4>
-              <p className="text-xs text-[#52525B] leading-relaxed">
-                Ranks failover and isolation playbooks against the do-nothing baseline, projecting residual risk without executing infrastructure commands.
-              </p>
-            </div>
+            <h4 className="text-sm font-semibold text-[#18181B]">Simulated Recovery</h4>
+            <p className="text-xs text-[#52525B] leading-relaxed">
+              Ranks isolation, failover, and drain playbooks against the do-nothing baseline, projecting residual risk without executing live changes.
+            </p>
           </div>
         </div>
       </section>
 
       {/* ATMOSPHERIC FLOW VIDEO MODULE */}
       <section className="story-chapter max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="rounded-3xl border border-[#E4E4E7] bg-white p-8 sm:p-12 shadow-sm space-y-6">
+        <div className="rounded-3xl border border-[#E4E4E7] bg-white p-8 sm:p-12 shadow-sm space-y-6 craft-card">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 space-y-4 text-left">
               <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#FC4778] uppercase tracking-wider font-semibold">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Dynamic Topology Dynamics</span>
+                <span>Architecture Dynamics</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-[#18181B] tracking-tight font-sans">
                 How Microservice Topologies Quietly Unravel
@@ -207,7 +223,7 @@ export const StorySection: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
-          <div className="p-7 rounded-2xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm hover:border-[#D4D4D8] transition-all">
+          <div className="p-7 rounded-3xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm craft-card">
             <div className="h-9 w-9 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-center text-[#D97706]">
               <TrendingUp className="h-4 w-4" />
             </div>
@@ -217,7 +233,7 @@ export const StorySection: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-7 rounded-2xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm hover:border-[#D4D4D8] transition-all">
+          <div className="p-7 rounded-3xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm craft-card">
             <div className="h-9 w-9 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#DC2626]">
               <AlertOctagon className="h-4 w-4" />
             </div>
@@ -227,8 +243,8 @@ export const StorySection: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-7 rounded-2xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm hover:border-[#D4D4D8] transition-all">
-            <div className="h-9 w-9 rounded-xl bg-[#FAF5FF] border border-[#E9D5FF] flex items-center justify-center text-[#9333EA]">
+          <div className="p-7 rounded-3xl bg-white border border-[#E4E4E7] space-y-3 shadow-sm craft-card">
+            <div className="h-9 w-9 rounded-xl bg-[#FAF5FF] border border-[#E9D5FF] flex items-center justify-center text-[#7C3AED]">
               <Cpu className="h-4 w-4" />
             </div>
             <h3 className="text-base font-semibold text-[#18181B] font-sans">Log Entropy Clustering</h3>
@@ -253,10 +269,10 @@ export const StorySection: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-8 rounded-3xl bg-white border border-[#E4E4E7] space-y-6 shadow-sm text-left">
+        <div className="p-8 rounded-3xl bg-white border border-[#E4E4E7] space-y-6 shadow-sm text-left craft-card">
           <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-4">
             <span className="text-[#18181B] font-semibold flex items-center gap-2 text-sm">
-              <GitFork className="h-4 w-4 text-[#9333EA]" />
+              <GitFork className="h-4 w-4 text-[#7C3AED]" />
               <span>Directed Failure Propagation Chain</span>
             </span>
             <span className="text-[#71717A] text-[11px] font-mono">Cycle-Safe DAG Traversal</span>
@@ -299,7 +315,7 @@ export const StorySection: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
-          <div className="p-6 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] space-y-2 shadow-sm">
+          <div className="p-7 rounded-3xl bg-[#F0FDF4] border border-[#BBF7D0] space-y-2 shadow-sm craft-card">
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#059669] font-semibold block">
               Recommended Strategy (Rank #1)
             </span>
@@ -309,7 +325,7 @@ export const StorySection: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-2 shadow-sm">
+          <div className="p-7 rounded-3xl bg-[#FEF2F2] border border-[#FECACA] space-y-2 shadow-sm craft-card">
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#DC2626] font-semibold block">
               Baseline Inaction (Rank #4)
             </span>
@@ -320,10 +336,10 @@ export const StorySection: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-8">
+        <div className="pt-6">
           <a
             href="#upload"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#18181B] text-white font-medium text-sm hover:bg-black transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#18181B] text-white font-medium text-sm hover:bg-black transition-transform duration-150 shadow-sm hover:shadow-md active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2"
           >
             <span>Proceed to Upload Workspace</span>
             <ArrowRight className="h-4 w-4" />

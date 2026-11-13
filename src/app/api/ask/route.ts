@@ -47,12 +47,13 @@ export async function POST(req: NextRequest) {
       context: {
         status: context.status || "complete",
         dataQuality: context.dataQuality,
-        prediction: context.prediction || {
-          serviceId: null,
-          riskScore: 0,
-          riskBand: "unknown",
-          confidence: "low",
-          evidenceIds: [],
+        prediction: {
+          serviceId: context.prediction?.serviceId || null,
+          riskScore: context.prediction?.riskScore || 0,
+          riskBand: context.prediction?.riskBand || "unknown",
+          confidence: context.prediction?.confidence || "low",
+          causeSummary: context.prediction?.causeSummary || "",
+          evidenceIds: Array.isArray(context.prediction?.evidenceIds) ? context.prediction.evidenceIds : [],
         },
         dependencies: Array.isArray(context.dependencies) ? context.dependencies : [],
         cascadePaths: Array.isArray(context.cascadePaths) ? context.cascadePaths : [],

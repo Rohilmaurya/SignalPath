@@ -27,8 +27,8 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
 }) => {
   if (scenarios.length === 0) {
     return (
-      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm text-xs text-[#52525B]">
-        <h3 className="text-sm font-semibold text-[#18181B] mb-2 flex items-center gap-2">
+      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm text-xs text-[#52525B] craft-card">
+        <h3 className="text-sm font-semibold text-[#18181B] mb-2 flex items-center gap-2 font-sans">
           <GitMerge className="h-4 w-4 text-[#059669]" />
           <span>Simulated Recovery Scenarios</span>
         </h3>
@@ -44,11 +44,11 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
   );
 
   return (
-    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+    <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-sm space-y-6 craft-card">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E4E4E7] pb-4">
         <div>
-          <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-[#18181B] tracking-tight flex items-center gap-2 font-sans">
             <GitMerge className="h-4 w-4 text-[#059669]" />
             <span>Simulated Recovery Strategy Comparison</span>
           </h3>
@@ -60,7 +60,7 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
         {activeScenarioId && (
           <button
             onClick={onResetScenario}
-            className="text-xs px-3.5 py-1.5 rounded-full bg-white hover:bg-zinc-100 border border-[#E4E4E7] text-[#18181B] flex items-center gap-1.5 transition-colors font-medium shadow-sm"
+            className="text-xs px-3.5 py-1.5 rounded-full bg-white hover:bg-zinc-100 border border-[#E4E4E7] text-[#18181B] flex items-center gap-1.5 transition-transform duration-150 active:scale-[0.975] font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-[#18181B]"
           >
             <RotateCcw className="h-3 w-3" />
             <span>Reset 3D Preview</span>
@@ -69,7 +69,7 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
       </div>
 
       {/* Safety Notice */}
-      <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
+      <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900 font-sans">
         <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
         <div>
           <strong className="text-amber-950 font-medium">Simulated Operational Estimates:</strong>{" "}
@@ -81,8 +81,17 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Recommended Strategy Spotlight */}
         <div
+          tabIndex={0}
+          role="button"
+          aria-label={`Simulate recommended strategy: ${recommendedScenario.label}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelectScenario(recommendedScenario);
+            }
+          }}
           onClick={() => onSelectScenario(recommendedScenario)}
-          className={`rounded-2xl border p-5 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+          className={`rounded-2xl border p-5 transition-transform duration-150 active:scale-[0.985] cursor-pointer relative overflow-hidden flex flex-col justify-between craft-card outline-none focus-visible:ring-2 focus-visible:ring-[#059669] ${
             activeScenarioId === recommendedScenario.id
               ? "bg-emerald-50/50 border-emerald-500 shadow-md ring-2 ring-emerald-500"
               : "bg-[#FAFAFA] border-emerald-200/80 hover:border-emerald-400 hover:bg-emerald-50/20"
@@ -90,24 +99,24 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
         >
           <div>
             <div className="flex items-center justify-between gap-2 mb-2.5">
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 font-mono">
                 <Sparkles className="h-3 w-3" />
                 Recommended Strategy (Rank #1)
               </span>
 
               {activeScenarioId === recommendedScenario.id && (
-                <span className="text-[11px] text-emerald-700 flex items-center gap-1 font-semibold">
+                <span className="text-[11px] text-emerald-700 flex items-center gap-1 font-semibold font-mono">
                   <CheckCircle className="h-3.5 w-3.5" />
                   Simulating
                 </span>
               )}
             </div>
 
-            <h4 className="text-base font-bold text-[#18181B] mb-1.5">
+            <h4 className="text-base font-bold text-[#18181B] mb-1.5 font-sans">
               {recommendedScenario.label}
             </h4>
 
-            <p className="text-xs text-[#52525B] mb-3 leading-relaxed">
+            <p className="text-xs text-[#52525B] mb-3 leading-relaxed font-sans">
               {recommendedScenario.description}
             </p>
           </div>
@@ -129,12 +138,12 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
               </div>
             </div>
 
-            <p className="text-[11px] text-[#71717A] mb-3">
+            <p className="text-[11px] text-[#71717A] mb-3 font-sans">
               <strong className="text-[#52525B]">Tradeoff:</strong> {recommendedScenario.tradeoffs}
             </p>
 
             <button
-              className={`w-full py-2 rounded-full text-xs font-semibold border transition-all ${
+              className={`w-full py-2 rounded-full text-xs font-semibold border transition-transform duration-150 active:scale-[0.975] ${
                 activeScenarioId === recommendedScenario.id
                   ? "bg-[#059669] text-white border-[#059669] shadow-sm"
                   : "bg-[#18181B] border-[#18181B] text-white hover:bg-zinc-800 shadow-sm"
@@ -147,8 +156,17 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
 
         {/* Do-Nothing Baseline Spotlight */}
         <div
+          tabIndex={0}
+          role="button"
+          aria-label={`Simulate baseline inaction: ${baselineScenario.label}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelectScenario(baselineScenario);
+            }
+          }}
           onClick={() => onSelectScenario(baselineScenario)}
-          className={`rounded-2xl border p-5 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+          className={`rounded-2xl border p-5 transition-transform duration-150 active:scale-[0.985] cursor-pointer relative overflow-hidden flex flex-col justify-between craft-card outline-none focus-visible:ring-2 focus-visible:ring-[#DC2626] ${
             activeScenarioId === baselineScenario.id
               ? "bg-rose-50/50 border-rose-500 shadow-md ring-2 ring-rose-500"
               : "bg-[#FAFAFA] border-[#E4E4E7] hover:border-zinc-300"
@@ -156,23 +174,23 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
         >
           <div>
             <div className="flex items-center justify-between gap-2 mb-2.5">
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/80 border border-zinc-300 text-[#52525B]">
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/80 border border-zinc-300 text-[#52525B] font-mono">
                 Do-Nothing Baseline
               </span>
 
               {activeScenarioId === baselineScenario.id && (
-                <span className="text-[11px] text-rose-700 flex items-center gap-1 font-semibold">
+                <span className="text-[11px] text-rose-700 flex items-center gap-1 font-semibold font-mono">
                   <CheckCircle className="h-3.5 w-3.5" />
                   Simulating
                 </span>
               )}
             </div>
 
-            <h4 className="text-base font-bold text-[#18181B] mb-1.5">
+            <h4 className="text-base font-bold text-[#18181B] mb-1.5 font-sans">
               {baselineScenario.label}
             </h4>
 
-            <p className="text-xs text-[#52525B] mb-3 leading-relaxed">
+            <p className="text-xs text-[#52525B] mb-3 leading-relaxed font-sans">
               {baselineScenario.description}
             </p>
           </div>
@@ -193,12 +211,12 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
               </div>
             </div>
 
-            <p className="text-[11px] text-[#71717A] mb-3">
+            <p className="text-[11px] text-[#71717A] mb-3 font-sans">
               <strong className="text-[#52525B]">Tradeoff:</strong> {baselineScenario.tradeoffs}
             </p>
 
             <button
-              className={`w-full py-2 rounded-full text-xs font-semibold border transition-all ${
+              className={`w-full py-2 rounded-full text-xs font-semibold border transition-transform duration-150 active:scale-[0.975] ${
                 activeScenarioId === baselineScenario.id
                   ? "bg-[#DC2626] text-white border-[#DC2626] shadow-sm"
                   : "bg-white border-[#E4E4E7] text-[#18181B] hover:bg-zinc-100 shadow-sm"
@@ -235,7 +253,7 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
                     <tr
                       key={alt.id}
                       onClick={() => onSelectScenario(alt)}
-                      className={`hover:bg-zinc-50 transition-colors cursor-pointer ${
+                      className={`hover:bg-zinc-50 transition-colors duration-150 cursor-pointer ${
                         isAltActive ? "bg-emerald-50/40 border-l-4 border-l-[#059669]" : ""
                       }`}
                     >
@@ -260,7 +278,7 @@ export const RecoveryMatrix: React.FC<RecoveryMatrixProps> = ({
                             e.stopPropagation();
                             onSelectScenario(alt);
                           }}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-transform duration-150 active:scale-[0.975] ${
                             isAltActive
                               ? "bg-[#18181B] text-white border-[#18181B]"
                               : "bg-white border-[#E4E4E7] text-[#18181B] hover:bg-zinc-100"

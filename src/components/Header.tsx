@@ -25,11 +25,15 @@ export const Header: React.FC<HeaderProps> = ({
   const explanationSource = analysis?.prediction.explanationSource;
 
   return (
-    <header className="border-b border-[#E4E4E7] bg-white/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 transition-all">
+    <header className="border-b border-[#E4E4E7] bg-white/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 transition-colors duration-200">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
         {/* Brand identity */}
         <div className="flex items-center gap-3">
-          <a href="#" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+          <a 
+            href="#" 
+            className="flex items-center gap-3 hover:opacity-90 transition-opacity duration-150 focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2 rounded-xl p-0.5"
+            aria-label="SignalPath Home"
+          >
             <div className="h-8 w-8 rounded-xl bg-[#18181B] flex items-center justify-center text-white shadow-sm">
               <Activity className="h-4 w-4" />
             </div>
@@ -42,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-xs text-[#71717A] font-normal hidden sm:inline font-sans">
                   Incident Observatory
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] text-[#71717A] uppercase">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] text-[#71717A] uppercase font-medium">
                   sim
                 </span>
               </div>
@@ -78,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Action: New Analysis */}
               <button
                 onClick={onNewAnalysis}
-                className="px-4 py-2 rounded-full bg-[#18181B] text-white text-xs font-medium flex items-center gap-1.5 hover:bg-black transition-all shadow-sm active:scale-95"
+                className="px-4 py-2 rounded-full bg-[#18181B] text-white text-xs font-medium flex items-center gap-1.5 hover:bg-black transition-transform duration-150 shadow-sm active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2 min-h-[38px]"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>New Analysis</span>
@@ -88,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
             <>
               <a
                 href="#signals"
-                className="text-xs text-[#52525B] hover:text-[#18181B] px-3 py-1.5 rounded-full hover:bg-[#F4F4F5] transition-colors hidden sm:flex items-center gap-1.5 font-medium"
+                className="text-xs text-[#52525B] hover:text-[#18181B] px-3.5 py-1.5 rounded-full hover:bg-[#F4F4F5] transition-colors duration-150 hidden sm:flex items-center gap-1.5 font-medium"
               >
                 <BookOpen className="h-3.5 w-3.5" />
                 <span>Story</span>
@@ -96,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               <a
                 href="#upload"
-                className="px-5 py-2 rounded-full bg-[#18181B] text-white text-xs font-medium flex items-center gap-1.5 hover:bg-black transition-all shadow-sm active:scale-95"
+                className="px-5 py-2 rounded-full bg-[#18181B] text-white text-xs font-medium flex items-center gap-1.5 hover:bg-black transition-transform duration-150 shadow-sm active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B] focus-visible:ring-offset-2 min-h-[38px]"
               >
                 <span>Upload Telemetry</span>
                 <ArrowRight className="h-3.5 w-3.5" />

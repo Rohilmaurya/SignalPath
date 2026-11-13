@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { EvidenceItem, ServiceAnalysis } from "@/lib/types";
 import { 
   X, 
@@ -37,6 +37,16 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Keyboard accessibility: ESC key to dismiss (emil-design-eng)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleCopy = (id: string) => {
@@ -63,8 +73,14 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
   const activeService = services.find((s) => s.id === selectedServiceId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-mono text-xs">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm transition-opacity duration-200"
+      onClick={onClose}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-mono text-xs transition-transform duration-200 ease-out transform scale-100 animate-in fade-in zoom-in-95"
+      >
         {/* Header */}
         <div className="p-5 border-b border-[#E4E4E7] flex items-center justify-between bg-[#FAFAFA]">
           <div className="flex items-center gap-3">
@@ -85,7 +101,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-white hover:bg-zinc-100 text-[#52525B] hover:text-[#18181B] border border-[#E4E4E7] transition-colors"
+            className="p-2 rounded-full bg-white hover:bg-zinc-100 text-[#52525B] hover:text-[#18181B] border border-[#E4E4E7] transition-transform duration-150 active:scale-[0.975] focus-visible:ring-2 focus-visible:ring-[#18181B]"
             aria-label="Close evidence inspector"
           >
             <X className="h-4 w-4" />
@@ -100,7 +116,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
             <select
               value={selectedServiceId || "all"}
               onChange={(e) => onSelectService(e.target.value === "all" ? null : e.target.value)}
-              className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-full px-3 py-1 text-[#18181B] text-xs outline-none focus:border-[#18181B]"
+              className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-full px-3 py-1.5 text-[#18181B] text-xs outline-none focus:border-[#18181B]"
             >
               <option value="all">All Services ({evidenceList.length})</option>
               {services.map((s) => (
@@ -115,7 +131,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
           <div className="flex items-center gap-1 rounded-full bg-[#F4F4F5] p-1 border border-[#E4E4E7]">
             <button
               onClick={() => setFilterKind("all")}
-              className={`px-3 py-0.5 rounded-full text-[11px] transition-all ${
+              className={`px-3 py-1 rounded-full text-[11px] transition-transform duration-150 active:scale-[0.975] ${
                 filterKind === "all" ? "bg-[#18181B] text-white font-medium" : "text-[#52525B] hover:text-[#18181B]"
               }`}
             >
@@ -123,7 +139,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
             </button>
             <button
               onClick={() => setFilterKind("metric")}
-              className={`px-3 py-0.5 rounded-full text-[11px] transition-all ${
+              className={`px-3 py-1 rounded-full text-[11px] transition-transform duration-150 active:scale-[0.975] ${
                 filterKind === "metric" ? "bg-[#18181B] text-white font-medium" : "text-[#52525B] hover:text-[#18181B]"
               }`}
             >
@@ -131,7 +147,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
             </button>
             <button
               onClick={() => setFilterKind("log")}
-              className={`px-3 py-0.5 rounded-full text-[11px] transition-all ${
+              className={`px-3 py-1 rounded-full text-[11px] transition-transform duration-150 active:scale-[0.975] ${
                 filterKind === "log" ? "bg-[#18181B] text-white font-medium" : "text-[#52525B] hover:text-[#18181B]"
               }`}
             >
@@ -141,13 +157,13 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
 
           {/* Text Search */}
           <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <Search className="absolute left-3 top-2 h-3.5 w-3.5 text-[#71717A]" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#71717A]" />
             <input
               type="text"
               placeholder="Search evidence or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#FAFAFA] border border-[#E4E4E7] rounded-full pl-8 pr-3 py-1 text-[#18181B] text-xs outline-none focus:border-[#18181B]"
+              className="w-full bg-[#FAFAFA] border border-[#E4E4E7] rounded-full pl-8 pr-3 py-1.5 text-[#18181B] text-xs outline-none focus:border-[#18181B]"
             />
           </div>
         </div>
@@ -181,7 +197,6 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
           ) : (
             filteredEvidence.map((item) => {
               const isHighlighted = item.id === highlightedEvidenceId;
-              const isMetric = item.kind === "metric";
 
               const severityBadge =
                 item.severity === "fatal"
@@ -195,7 +210,7 @@ export const EvidenceInspector: React.FC<EvidenceInspectorProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-2xl border transition-all ${
+                  className={`p-4 rounded-2xl border transition-colors duration-150 craft-card ${
                     isHighlighted
                       ? "bg-white border-[#18181B] ring-2 ring-[#18181B] shadow-md"
                       : "bg-white border-[#E4E4E7] hover:border-zinc-400 shadow-sm"
