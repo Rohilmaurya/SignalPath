@@ -160,14 +160,6 @@ node test-api.mjs
 
 The API checks expect the local application to be reachable at `http://localhost:3000`.
 
-## Project documentation
-
-- [Product requirements](PRD.md)
-- [Technical requirements](TRD.md)
-- [Application flow](app-flow.md)
-- [Backend schema](backend-schema.md)
-- [Build plan](plan.md)
-- [Technologies, AI, and contributions](TECHNOLOGIES_AND_CONTRIBUTIONS.md)
 
 ## Status
 
